@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Portal — Sign in</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-intro">
+      <span class="badge">Prototype</span>
+      <h1>Clinical Support Solutions Portal</h1>
+      <p>One place for our pharmacists and pharmacy technicians, and for the PCNs and practices we provide services to.</p>
+      <p style="margin-top:28px;"><strong>CSS Team area</strong><br>Rotas, announcements, SOPs &amp; documents, holiday requests, invoicing.</p>
+      <p><strong>PCN / Practice area</strong><br>Service information, referral forms, reports, contacts and updates.</p>
+      <p style="margin-top:28px; font-size:0.78rem; color:#9db2bb;">This is a working prototype. Data is stored only in your browser — no real patient or financial data should be entered.</p>
+    </div>
+    <div class="login-form">
+      <div class="tab-row">
+        <button class="tab-btn active" id="tabStaffBtn" onclick="switchTab('staff')">CSS Staff</button>
+        <button class="tab-btn" id="tabPracticeBtn" onclick="switchTab('practice')">PCN / Practice</button>
+        <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')">Admin</button>
+      </div>
+
+      <div id="staffPane">
+        <h2>Staff sign in</h2>
+        <label for="staffUser">Username</label>
+        <input id="staffUser" type="text" autocomplete="username" placeholder="e.g. j.amin">
+        <label for="staffPass">Password</label>
+        <input id="staffPass" type="password" autocomplete="current-password" placeholder="••••••••">
+        <button class="btn full" onclick="attemptLogin('staff')">Sign in</button>
+        <div class="error-msg" id="staffErr"></div>
+        <div class="hint">
+          Demo accounts — try <code>j.amin</code>, <code>t.brown</code> or <code>s.khan</code>, password <code>css2026</code>.
+        </div>
+      </div>
+
+      <div id="practicePane" style="display:none;">
+        <h2>PCN / Practice sign in</h2>
+        <label for="pracUser">Username</label>
+        <input id="pracUser" type="text" autocomplete="username" placeholder="e.g. riverside">
+        <label for="pracPass">Password</label>
+        <input id="pracPass" type="password" autocomplete="current-password" placeholder="••••••••">
+        <button class="btn full" onclick="attemptLogin('practice')">Sign in</button>
+        <div class="error-msg" id="pracErr"></div>
+        <div class="hint">
+          Demo accounts — try <code>riverside</code>, <code>eastgate-pcn</code> or <code>westfield</code>, password <code>practice2026</code>.
+        </div>
+      </div>
+      <div id="adminPane" style="display:none;">
+        <h2>Admin sign in</h2>
+        <label for="adminUser">Username</label>
+        <input id="adminUser" type="text" autocomplete="username" placeholder="e.g. admin">
+        <label for="adminPass">Password</label>
+        <input id="adminPass" type="password" autocomplete="current-password" placeholder="••••••••">
+        <button class="btn full" onclick="attemptLogin('admin')">Sign in</button>
+        <div class="error-msg" id="adminErr"></div>
+        <div class="hint">
+          Demo account — <code>admin</code>, password <code>admin2026</code>. Controls rota, approvals, training, documents and more.
+        </div>
+      </div>
+      <div class="hint">Forgotten your details? Contact the CSS office to be re-issued credentials.</div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script>
+  function switchTab(which) {
+    document.getElementById('tabStaffBtn').classList.toggle('active', which === 'staff');
+    document.getElementById('tabPracticeBtn').classList.toggle('active', which === 'practice');
+    document.getElementById('tabAdminBtn').classList.toggle('active', which === 'admin');
+    document.getElementById('staffPane').style.display = which === 'staff' ? 'block' : 'none';
+    document.getElementById('practicePane').style.display = which === 'practice' ? 'block' : 'none';
+    document.getElementById('adminPane').style.display = which === 'admin' ? 'block' : 'none';
+  }
+
+  const LOGIN_FIELDS = {
+    staff:    { user: 'staffUser', pass: 'staffPass', err: 'staffErr', list: 'staff',    page: 'staff.html' },
+    practice: { user: 'pracUser',  pass: 'pracPass',  err: 'pracErr',  list: 'practice', page: 'practice.html' },
+    admin:    { user: 'adminUser', pass: 'adminPass', err: 'adminErr', list: 'admin',    page: 'admin.html' }
+  };
+
+  function attemptLogin(kind) {
+    const db = cssLoadDB();
+    const f = LOGIN_FIELDS[kind];
+    const username = document.getElementById(f.user).value.trim().toLowerCase();
+    const password = document.getElementById(f.pass).value;
+    const list = db.users[f.list] || [];
+
+    const match = list.find(u => u.username.toLowerCase() === username && u.password === password);
+    document.getElementById(f.err).textContent = '';
+
+    if (!match) {
+      document.getElementById(f.err).textContent = 'Username or password not recognised. Please check the demo accounts below.';
+      return;
+    }
+
+    const extra = kind === 'staff' ? { role: match.role, site: match.site }
+      : kind === 'practice' ? { org: match.org, type: match.type, contract: match.contract || null }
+      : { role: match.role, tier: match.tier || 'super' };
+    cssSetSession({ kind, username: match.username, name: match.name, ...extra });
+    window.location.href = f.page;
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    if (document.getElementById('staffPane').style.display !== 'none') attemptLogin('staff');
+    else if (document.getElementById('practicePane').style.display !== 'none') attemptLogin('practice');
+    else attemptLogin('admin');
+  });
+</script>
+</body>
+</html>

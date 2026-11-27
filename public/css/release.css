@@ -1,0 +1,20 @@
+/* Release 1 additions — kept separate so styles.css stays identical to the prototype. */
+.nav-item.is-disabled { opacity: 0.45; cursor: not-allowed; }
+.nav-item.is-disabled:hover { background: transparent; }
+.soon-pill { margin-left: auto; font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #cfdbe0; padding: 1px 6px; border-radius: 8px; text-transform: uppercase; letter-spacing: .04em; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--css-teal); cursor: pointer; font: inherit; text-decoration: underline; }
+.form-msg.is-error, .error-msg { color: var(--css-red); }
+.form-msg.is-ok { color: var(--css-green); }
+.pw-rules { font-size: 0.8rem; color: var(--css-muted); margin: 8px 0 0; padding-left: 18px; line-height: 1.6; }
+.pw-rules li.ok { color: var(--css-green); }
+.week-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.week-day { background: var(--css-bg); border: 1px solid var(--css-border); border-radius: 8px; padding: 10px; }
+.week-day.is-today { border-color: var(--css-teal); }
+.week-day-head { font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; }
+.week-shift { background: var(--css-card); border-left: 3px solid var(--css-border); border-radius: 4px; padding: 6px 8px; margin-bottom: 6px; font-size: 0.75rem; color: var(--css-muted); }
+.week-shift strong { display: block; font-size: 0.78rem; color: var(--css-text); }
+.week-shift.is-oneoff { border-left-color: var(--css-amber); }
+.section-label { font-size: 1rem; color: var(--css-muted); text-transform: uppercase; letter-spacing: .04em; margin: 32px 0 10px; }
+.section-label:first-of-type { margin-top: 0; }
+.inline-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+@media (max-width: 800px) { .week-grid { grid-template-columns: 1fr; } }

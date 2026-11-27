@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CSS Staff Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/release.css">
+</head>
+<body>
+<div class="app-shell" id="app" style="visibility:hidden;">
+  <nav class="sidebar">
+    <div class="brand">CSS Staff Portal<small>Clinical Support Solutions</small></div>
+    <div class="who" id="whoBox"></div>
+
+    <button class="nav-item active" data-section="dashboard"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-item" data-section="rota"><span class="nav-icon">🗓️</span> Rota</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📣</span> Announcements</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📄</span> SOPs &amp; Documents</button>
+    <button class="nav-item" data-soon><span class="nav-icon">🌴</span> Holiday requests</button>
+    <button class="nav-item" data-soon><span class="nav-icon">💷</span> Invoicing</button>
+    <button class="nav-item" data-soon><span class="nav-icon">🧰</span> Tools</button>
+    <button class="nav-item" data-soon><span class="nav-icon">👤</span> My details</button>
+
+    <button class="nav-item logout-btn" data-action="logout"><span class="nav-icon">↩️</span> Sign out</button>
+  </nav>
+
+  <main class="main">
+    <!-- Dashboard -->
+    <section class="section active" id="sec-dashboard">
+      <div class="page-header"><div><h1>Welcome back</h1><p id="welcomeLine"></p></div></div>
+      <div class="cards-grid">
+        <div class="stat-card stat-card--link" data-goto="rota"><div class="num" id="statShifts">–</div><div class="label">Shifts this week</div></div>
+        <div class="stat-card stat-card--link" data-goto="rota"><div class="num" id="statHours">–</div><div class="label">Hours this week</div></div>
+      </div>
+      <div class="panel">
+        <h2>Your next shifts</h2>
+        <ul class="notif-list" id="dashRota"></ul>
+      </div>
+    </section>
+
+    <!-- Rota -->
+    <section class="section" id="sec-rota">
+      <div class="page-header"><div><h1>Rota</h1><p>Your published shifts at CSS clinical sites. Staff can only see their own rota.</p></div></div>
+
+      <div class="cards-grid">
+        <div class="stat-card"><div class="num" id="rotaStatShifts">–</div><div class="label">Your shifts this week</div></div>
+        <div class="stat-card"><div class="num" id="rotaStatHours">–</div><div class="label">Your hours this week</div></div>
+        <div class="stat-card"><div class="num" id="rotaStatSites">–</div><div class="label">Sites you're covering</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="rota-toolbar">
+          <h3 style="margin:0;" id="rotaWeekLabel">Your weekly shifts</h3>
+          <div class="rota-filters">
+            <button class="btn small secondary" type="button" id="rotaPrev">‹ Previous</button>
+            <button class="btn small secondary" type="button" id="rotaThis">This week</button>
+            <button class="btn small secondary" type="button" id="rotaNext">Next ›</button>
+          </div>
+        </div>
+        <p style="color:var(--css-muted); font-size:0.85rem; margin-top:-6px;">Your shifts repeat on the same days and times each week. Step forward or back to check any week.</p>
+        <div class="rota-days" id="rotaDays"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/portal.js"></script>
+<script src="js/staff.js"></script>
+</body>
+</html>

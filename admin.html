@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Admin Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="brand">CSS Admin Portal<small>Clinical Support Solutions</small></div>
+    <div class="who" id="whoBox"></div>
+
+    <button class="nav-item active" data-section="dashboard" data-tiers="super,standard,limited" onclick="showSection('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-item" data-section="rota" data-tiers="super,standard" onclick="showSection('rota')"><span class="nav-icon">🗓️</span> Rota &amp; lunch</button>
+    <button class="nav-item" data-section="holiday" data-tiers="super,standard" onclick="showSection('holiday')"><span class="nav-icon">🌴</span> Holiday approvals<span class="nav-badge" id="holidayNavBadge" style="display:none;"></span></button>
+    <button class="nav-item" data-section="training" data-tiers="super,standard" onclick="showSection('training')"><span class="nav-icon">📋</span> Staff Documents<span class="nav-badge" id="docsNavBadge" style="display:none;"></span></button>
+    <button class="nav-item" data-section="renewals" data-tiers="super,standard" onclick="showSection('renewals')"><span class="nav-icon">📑</span> Renewals</button>
+    <button class="nav-item" data-section="announcements" data-tiers="super,standard" onclick="showSection('announcements')"><span class="nav-icon">📣</span> Announcements</button>
+    <button class="nav-item" data-section="documents" data-tiers="super,standard" onclick="showSection('documents')"><span class="nav-icon">📄</span> Documents</button>
+    <button class="nav-item" data-section="invoices" data-tiers="super,standard" onclick="showSection('invoices')"><span class="nav-icon">💷</span> Invoices</button>
+    <button class="nav-item" data-section="requests" data-tiers="super,standard" onclick="showSection('requests')"><span class="nav-icon">📥</span> Service requests<span class="nav-badge" id="requestsNavBadge" style="display:none;"></span></button>
+    <button class="nav-item" data-section="services" data-tiers="super,standard" onclick="showSection('services')"><span class="nav-icon">🩺</span> Our services</button>
+    <button class="nav-item" data-section="contacts" data-tiers="super,standard,limited" onclick="showSection('contacts')"><span class="nav-icon">📇</span> Contacts</button>
+    <button class="nav-item" data-section="contracts" data-tiers="super,standard" onclick="showSection('contracts')"><span class="nav-icon">📜</span> Practice contracts</button>
+    <button class="nav-item" data-section="cqcreports" data-tiers="super" onclick="showSection('cqcreports')"><span class="nav-icon">🏛️</span> CQC Reports</button>
+    <button class="nav-item" data-section="staff-mgmt" data-tiers="super" onclick="showSection('staff-mgmt')"><span class="nav-icon">👤</span> Accounts</button>
+    <button class="nav-item" data-section="incidents" data-tiers="super,standard" onclick="showSection('incidents')"><span class="nav-icon">⚠️</span> Incident reports<span class="nav-badge" id="incidentsNavBadge" style="display:none;"></span></button>
+    <button class="nav-item" data-section="ledger" data-tiers="super,standard,limited" onclick="showSection('ledger')"><span class="nav-icon">📋</span> Task ledger<span class="nav-badge" id="ledgerNavBadge" style="display:none;"></span></button>
+
+    <button class="nav-item logout-btn" onclick="logout()"><span class="nav-icon">↩️</span> Sign out</button>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="bell-wrap" id="bellWrap">
+        <button class="bell-btn" id="bellBtn" onclick="toggleBellDropdown()" title="Notifications">
+          🔔<span class="bell-badge" id="bellBadge"></span>
+        </button>
+        <div class="bell-dropdown" id="bellDropdown" style="display:none;">
+          <div class="bell-dropdown-header">Notifications<button class="bell-clear" id="bellClearAll">Mark all read</button></div>
+          <div id="bellList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="note-banner">Prototype mode — data shown here is sample data stored in your browser only. Nothing is sent to a server.</div>
+
+    <!-- Dashboard -->
+    <section class="section active" id="sec-dashboard">
+      <div class="page-header"><div><h1>Admin overview</h1><p id="welcomeLine"></p></div></div>
+      <div class="cards-grid">
+        <div class="stat-card stat-card--link" onclick="showSection('holiday')"><div class="num" id="statPendingHoliday">–</div><div class="label">Holiday requests pending</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('invoices')"><div class="num" id="statInvoicesDue">–</div><div class="label">Invoices awaiting payment</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('requests')"><div class="num" id="statOpenRequests">–</div><div class="label">Open service requests</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('training')"><div class="num" id="statTrainingOverdue">–</div><div class="label">Training overdue / pending</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('renewals')"><div class="num" id="statRenewalsDue">–</div><div class="label">Renewals due soon / overdue</div></div>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <h2>Needs your attention</h2>
+          <ul class="notif-list" id="dashAttention"></ul>
+        </div>
+        <div class="panel">
+          <h2>This week's rota at a glance</h2>
+          <ul class="notif-list" id="dashRotaWeek"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rota & lunch -->
+    <section class="section" id="sec-rota">
+      <div class="page-header"><div><h1>Rota &amp; lunch breaks</h1><p>Manage recurring weekly shifts and one-off overtime / cover shifts.</p></div></div>
+
+      <h2 style="font-size:1rem; color:var(--css-muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Recurring weekly shifts</h2>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+        <label for="rotaStaffSelect" style="font-weight:600; white-space:nowrap;">Staff member:</label>
+        <select id="rotaStaffSelect" onchange="showRotaStaff(this.value)" style="max-width:320px;"></select>
+      </div>
+      <div id="rotaStaffContent"></div>
+
+      <!-- Weekly rota calendar with holiday overlay -->
+      <h2 style="font-size:1rem; color:var(--css-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:36px; margin-bottom:10px;">Weekly calendar</h2>
+      <div class="panel" style="padding-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap;">
+          <button class="btn small secondary" onclick="adminRotaPrevWeek()">← Prev</button>
+          <span id="adminRotaWeekLabel" style="font-weight:600; font-size:1rem;"></span>
+          <button class="btn small secondary" onclick="adminRotaNextWeek()">Next →</button>
+          <select id="calStaffFilter" onchange="renderAdminWeekCalendar()" style="margin-left:auto; max-width:220px;"><option value="">All staff</option></select>
+        </div>
+        <div id="adminWeekCalendar"></div>
+      </div>
+
+      <!-- One-off / overtime shifts -->
+      <h2 style="font-size:1rem; color:var(--css-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:32px; margin-bottom:10px;">One-off shifts &amp; overtime</h2>
+      <div class="two-col">
+        <div class="panel">
+          <h3>Add a one-off shift</h3>
+          <p style="color:var(--css-muted); font-size:0.88rem; margin-top:-4px;">Use this for overtime, bank holiday cover, or any shift that falls outside the regular weekly pattern. It will appear on the staff member's rota for that date only.</p>
+          <label for="ooStaff">Staff member</label>
+          <select id="ooStaff"></select>
+          <div class="form-row" style="margin-top:12px;">
+            <div><label for="ooDate">Date</label><input type="date" id="ooDate"></div>
+            <div><label for="ooSite">Site</label>
+              <select id="ooSite">
+                <option value="Riverside PCN|riverside">Riverside PCN</option>
+                <option value="Eastgate PCN|eastgate">Eastgate PCN</option>
+                <option value="Westfield PCN|westfield">Westfield PCN</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div><label for="ooFrom">Start time</label><input type="time" id="ooFrom" value="09:00"></div>
+            <div><label for="ooTo">End time</label><input type="time" id="ooTo" value="17:00"></div>
+            <div><label for="ooLunch">Lunch (mins)</label><input type="number" id="ooLunch" value="30" min="0" step="5"></div>
+          </div>
+          <label for="ooNote">Reason / note</label>
+          <input type="text" id="ooNote" placeholder="e.g. Overtime — bank holiday cover">
+          <div class="form-actions">
+            <button class="btn" onclick="saveOneOffShift()">Add shift</button>
+            <span class="form-msg" id="ooMsg"></span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Upcoming one-off shifts</h3>
+          <div id="oneOffShiftsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Holiday approvals -->
+    <section class="section" id="sec-holiday">
+      <div class="page-header"><div><h1>Holiday approvals</h1><p>Review and action holiday requests from all staff.</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Staff</th><th>Role</th><th>From</th><th>To</th><th>Shifts / cover needed</th><th>Note</th><th>Status</th><th></th></tr></thead>
+          <tbody id="adminHolidayTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <!-- Staff Documents & Certificates -->
+    <section class="section" id="sec-training">
+      <div class="page-header"><div><h1>Staff Documents &amp; Certificates</h1><p>Review and approve documents uploaded by staff. Set due dates so reminders are sent automatically.</p></div></div>
+
+      <div class="doc-tabs" id="adminDocTabs">
+        <button class="doc-tab active" data-tab="pending" onclick="adminDocTab('pending')">Pending approval<span class="nav-badge" id="pendingDocsBadge" style="display:none; margin-left:6px;"></span></button>
+        <button class="doc-tab" data-tab="all" onclick="adminDocTab('all')">All documents</button>
+      </div>
+
+      <div id="adminDocPendingPanel">
+        <div class="panel">
+          <div id="pendingDocsList"></div>
+        </div>
+      </div>
+
+      <div id="adminDocAllPanel" style="display:none;">
+        <div class="panel">
+          <div class="form-row" style="margin-bottom:12px;">
+            <div>
+              <label for="docFilterStaff">Filter by staff</label>
+              <select id="docFilterStaff" onchange="renderAllDocs()"><option value="">All staff</option></select>
+            </div>
+            <div>
+              <label for="docFilterStatus">Status</label>
+              <select id="docFilterStatus" onchange="renderAllDocs()">
+                <option value="">All</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Staff</th><th>Document</th><th>Category</th><th>Uploaded</th><th>Due date</th><th>Status</th><th></th></tr></thead>
+            <tbody id="allDocsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Approve inline form (hidden, shown dynamically) -->
+      <div class="panel" id="approveDocPanel" style="display:none;">
+        <h3 id="approveDocTitle">Approve document</h3>
+        <p style="color:var(--css-muted); font-size:0.88rem; margin-top:-4px;">Optionally set an expiry date. Both admin and the staff member will be notified 2 weeks before it expires and again once it has expired.</p>
+        <div class="form-row">
+          <div><label for="approveDocDate">Expiry date <span style="font-weight:400; color:var(--css-muted)">(optional — leave blank if no expiry)</span></label><input type="date" id="approveDocDate"></div>
+          <div><label for="approveDocNotes">Notes (optional)</label><input type="text" id="approveDocNotes" placeholder="e.g. Accepted — valid for 1 year"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" onclick="confirmApproveDoc()">Confirm approval</button>
+          <button class="btn secondary" onclick="cancelApproveDoc()">Cancel</button>
+          <span class="form-msg" id="approveDocMsg"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Renewals — upcoming due dates across all staff -->
+    <section class="section" id="sec-renewals">
+      <div class="page-header"><div><h1>Renewals &amp; due dates</h1><p>Upcoming and overdue document renewals across all staff.</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Staff</th><th>Document</th><th>Category</th><th>Due date</th><th>Status</th><th></th></tr></thead>
+          <tbody id="adminRenewalsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Announcements -->
+    <section class="section" id="sec-announcements">
+      <div class="page-header"><div><h1>Announcements</h1><p>Publish updates to staff and/or PCNs &amp; practices.</p></div></div>
+      <div class="panel">
+        <h3>New announcement</h3>
+        <div class="form-row">
+          <div>
+            <label for="annType">Type</label>
+            <select id="annType">
+              <option value="css">CSS update</option>
+              <option value="mhra">MHRA alert</option>
+            </select>
+          </div>
+          <div>
+            <label for="annPriority">Priority</label>
+            <select id="annPriority">
+              <option value="teal">Info</option>
+              <option value="green">Update</option>
+              <option value="amber">Important</option>
+              <option value="red">Action needed</option>
+            </select>
+          </div>
+        </div>
+        <label for="annTitle">Title</label>
+        <input type="text" id="annTitle" placeholder="e.g. Updated CD register procedure">
+        <label for="annBody">Body</label>
+        <textarea id="annBody" rows="3" placeholder="Full announcement text"></textarea>
+
+        <div class="ann-recip-wrap">
+          <div class="ann-recip-section">
+            <div class="ann-recip-header">
+              <label class="hr-check"><input type="checkbox" id="annAllStaff" onchange="annToggleAll('staff', this.checked)"> <strong>CSS Staff</strong></label>
+              <span class="ann-recip-hint">Select individual</span>
+            </div>
+            <div class="ann-recip-list" id="annStaffList"></div>
+          </div>
+          <div class="ann-recip-section">
+            <div class="ann-recip-header">
+              <label class="hr-check"><input type="checkbox" id="annAllPractice" onchange="annToggleAll('practice', this.checked)"> <strong>PCN / Practices</strong></label>
+              <span class="ann-recip-hint">Select individual</span>
+            </div>
+            <div class="ann-recip-list" id="annPracticeList"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" onclick="addAnnouncement()">Publish announcement</button>
+          <span class="form-msg" id="annMsg"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Published announcements</h3>
+        <ul class="notif-list" id="adminAnnList"></ul>
+      </div>
+    </section>
+
+    <!-- Documents -->
+    <section class="section" id="sec-documents">
+      <div class="page-header"><div><h1>Documents</h1><p>Manage SOPs &amp; forms for CSS staff, and reference documents for each PCN &amp; practice.</p></div></div>
+
+      <!-- Top-level tabs -->
+      <div class="doc-tabs" id="docMainTabs">
+        <button class="doc-tab active" data-maintab="staff" onclick="adminDocMainTab('staff')">📄 CSS Staff Documents</button>
+        <button class="doc-tab" data-maintab="practice" onclick="adminDocMainTab('practice')">🏥 Practice &amp; PCN Documents</button>
+      </div>
+
+      <!-- ── Staff Documents panel ── -->
+      <div id="docStaffPanel">
+
+        <!-- Staff selector dropdown -->
+        <div style="margin-top:20px; display:flex; align-items:center; gap:12px;">
+          <label for="docStaffSelect" style="font-weight:600; white-space:nowrap;">View documents for:</label>
+          <select id="docStaffSelect" onchange="adminDocStaffFilter(this.value)" style="max-width:320px;">
+            <option value="all">All staff</option>
+            <!-- options populated by JS -->
+          </select>
+        </div>
+
+        <div class="two-col" style="margin-top:16px;">
+          <!-- Add form -->
+          <div class="panel">
+            <h3>Add a staff document</h3>
+            <label for="sDocName">Document name</label>
+            <input type="text" id="sDocName" placeholder="e.g. Updated SOP v4.pdf">
+            <div class="form-row" style="margin-top:12px;">
+              <div>
+                <label for="sDocCategory">Category</label>
+                <select id="sDocCategory">
+                  <option>SOP / Policy</option><option>HR</option><option>Training</option><option>Rota</option><option>Finance</option>
+                </select>
+              </div>
+              <div>
+                <label for="sDocStaff">Visible to</label>
+                <select id="sDocStaff">
+                  <option value="all">All staff</option>
+                  <!-- options populated by JS -->
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn secondary" onclick="addStaffDoc()">Add document</button>
+              <span class="form-msg" id="sDocMsg"></span>
+            </div>
+          </div>
+
+          <!-- Summary counts per staff member -->
+          <div class="panel">
+            <h3>Documents per staff member</h3>
+            <div id="staffDocSummary"></div>
+          </div>
+        </div>
+
+        <!-- Document list -->
+        <div class="panel" style="margin-top:0;">
+          <div id="adminStaffDocList"></div>
+        </div>
+
+      </div>
+
+      <!-- ── Practice & PCN Documents panel ── -->
+      <div id="docPracticePanel" style="display:none;">
+
+        <!-- Practice selector dropdown -->
+        <div style="margin-top:20px; display:flex; align-items:center; gap:12px;">
+          <label for="docPracticeSelect" style="font-weight:600; white-space:nowrap;">View documents for:</label>
+          <select id="docPracticeSelect" onchange="adminDocPracticeTab(this.value)" style="max-width:320px;">
+            <option value="all">All practices</option>
+            <!-- options populated by JS -->
+          </select>
+        </div>
+
+        <div class="two-col" style="margin-top:16px;">
+          <!-- Add form -->
+          <div class="panel">
+            <h3>Add a document</h3>
+            <label for="pDocName">Document name</label>
+            <input type="text" id="pDocName" placeholder="e.g. New referral form v3.docx">
+            <div class="form-row" style="margin-top:12px;">
+              <div>
+                <label for="pDocFolder">Folder</label>
+                <select id="pDocFolder">
+                  <option>Referral Forms</option><option>Contracts and MOU</option><option>Reports &amp; supervisions</option><option>CQC Support</option><option>Policies &amp; Procedures</option>
+                </select>
+              </div>
+              <div>
+                <label for="pDocPractice">Visible to</label>
+                <select id="pDocPractice">
+                  <option value="all">All practices</option>
+                  <!-- options populated by JS -->
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn secondary" onclick="addPracticeDoc()">Add document</button>
+              <span class="form-msg" id="pDocMsg"></span>
+            </div>
+          </div>
+
+          <!-- Summary counts per practice -->
+          <div class="panel">
+            <h3>Documents per practice</h3>
+            <div id="practiceDocSummary"></div>
+          </div>
+        </div>
+
+        <!-- Document list -->
+        <div class="panel" style="margin-top:0;">
+          <div id="adminPracticeDocList"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Invoices -->
+    <section class="section" id="sec-invoices">
+      <div class="page-header">
+        <div><h1>Invoices</h1><p>Review staff invoices and update payment status.</p></div>
+        <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+          <span style="font-size:0.82rem; color:var(--css-muted);">🤖 AI key:</span>
+          <button class="btn small secondary" onclick="setAiApiKey()">Set API key</button>
+        </div>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Reference</th><th>Staff</th><th>Period</th><th>Shifts</th><th>Hours</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+          <tbody id="adminInvoiceTable"></tbody>
+        </table>
+      </div>
+      <!-- AI check result panel -->
+      <div id="aiCheckPanel" style="display:none;" class="panel">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <h3 style="margin:0;" id="aiCheckTitle">AI invoice check</h3>
+          <button class="btn small secondary" onclick="document.getElementById('aiCheckPanel').style.display='none'">✕ Close</button>
+        </div>
+        <div id="aiCheckBody"></div>
+      </div>
+    </section>
+
+    <!-- Service requests -->
+    <section class="section" id="sec-requests">
+      <div class="page-header"><div><h1>Service requests</h1><p>Requests submitted by PCNs &amp; practices.</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Reference</th><th>Org</th><th>Service</th><th>Patients</th><th>Submitted</th><th>Status</th><th>Update status</th><th>Thread</th></tr></thead>
+          <tbody id="adminRequestsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Our services -->
+    <section class="section" id="sec-services">
+      <div class="page-header"><div><h1>Our services</h1><p>Add, edit and remove the clinical service tiles shown on the practice &amp; PCN portal. Assign tiles per practice so each portal shows only what's in their contract.</p></div></div>
+
+      <div class="two-col">
+        <!-- Add / Edit form -->
+        <div class="panel">
+          <h3 id="svcFormTitle">Add a new service</h3>
+          <div class="form-row">
+            <div style="flex:0 0 80px;">
+              <label for="svcIcon">Icon</label>
+              <input type="text" id="svcIcon" placeholder="💊" style="font-size:1.4rem; text-align:center;">
+            </div>
+            <div>
+              <label for="svcName">Service name</label>
+              <input type="text" id="svcName" placeholder="e.g. Structured Medication Reviews">
+            </div>
+          </div>
+          <label for="svcSummary">Summary <span style="font-weight:400; color:var(--css-muted); font-size:0.82rem;">(shown on the tile and at the top of the detail panel)</span></label>
+          <textarea id="svcSummary" rows="3" placeholder="One or two sentences describing what this service covers."></textarea>
+          <label for="svcScope">What's included <span style="font-weight:400; color:var(--css-muted); font-size:0.82rem;">(one item per line)</span></label>
+          <textarea id="svcScope" rows="4" placeholder="Full review of all regular and PRN medicines&#10;Deprescribing where clinically appropriate&#10;Written summary report to GP"></textarea>
+          <label for="svcCriteria">Referral criteria <span style="font-weight:400; color:var(--css-muted); font-size:0.82rem;">(one item per line)</span></label>
+          <textarea id="svcCriteria" rows="3" placeholder="Aged 18+, registered with the practice&#10;5 or more regular medicines, OR&#10;GP clinical concern"></textarea>
+          <div class="form-row" style="margin-top:4px;">
+            <div><label for="svcCapacity">Capacity</label><input type="text" id="svcCapacity" placeholder="e.g. Up to 8 per month per practice"></div>
+            <div><label for="svcTurnaround">Turnaround</label><input type="text" id="svcTurnaround" placeholder="e.g. Appointment within 4 weeks"></div>
+          </div>
+          <label for="svcReferral">How to refer</label>
+          <input type="text" id="svcReferral" placeholder="e.g. Complete the referral form in Documents & forms">
+          <label for="svcPractice">Visible to</label>
+          <select id="svcPractice">
+            <option value="all">All practices &amp; PCNs</option>
+          </select>
+          <div class="form-actions">
+            <button class="btn" id="svcSaveBtn" onclick="saveService()">Add service</button>
+            <button class="btn small secondary" id="svcCancelBtn" onclick="cancelServiceEdit()" style="display:none;">Cancel</button>
+            <span class="form-msg" id="svcMsg"></span>
+          </div>
+        </div>
+
+        <!-- Per-practice summary -->
+        <div class="panel">
+          <h3>Services per practice</h3>
+          <p class="notif-meta" style="margin-bottom:10px;">Click a practice to filter the list below to their tiles only.</p>
+          <div id="serviceSummary"></div>
+        </div>
+      </div>
+
+      <!-- View filter + list -->
+      <div class="panel" style="margin-top:16px;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+          <label for="svcViewSelect" style="font-weight:600; white-space:nowrap;">View services for:</label>
+          <select id="svcViewSelect" onchange="adminServiceFilter(this.value)" style="max-width:320px;">
+            <option value="all">All practices</option>
+          </select>
+          <span class="notif-meta" id="svcCount"></span>
+        </div>
+        <div id="adminServiceList"></div>
+      </div>
+    </section>
+
+    <!-- Contacts -->
+    <section class="section" id="sec-contacts">
+      <div class="page-header"><div><h1>Contacts</h1><p>Manage the key contacts shown on each practice &amp; PCN portal.</p></div></div>
+
+      <div class="two-col">
+        <!-- Add / Edit form -->
+        <div class="panel">
+          <h3 id="contactFormTitle">Add a contact</h3>
+          <div class="form-row">
+            <div><label for="ctcName">Name</label><input type="text" id="ctcName" placeholder="e.g. Jamila Amin"></div>
+            <div><label for="ctcRole">Role / title</label><input type="text" id="ctcRole" placeholder="e.g. Clinical Pharmacist"></div>
+          </div>
+          <div class="form-row">
+            <div><label for="ctcEmail">Email</label><input type="email" id="ctcEmail" placeholder="name@clinicalsupportsolutions.co.uk"></div>
+            <div><label for="ctcPhone">Phone <span style="font-weight:400; color:var(--css-muted); font-size:0.82rem;">(optional)</span></label><input type="tel" id="ctcPhone" placeholder="e.g. 0300 555 0123"></div>
+          </div>
+          <div class="form-row">
+            <div><label for="ctcCovers">Covers</label><input type="text" id="ctcCovers" placeholder="e.g. Riverside PCN, All sites"></div>
+            <div>
+              <label for="ctcPractice">Visible to</label>
+              <select id="ctcPractice">
+                <option value="all">All practices &amp; PCNs</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" id="ctcSaveBtn" onclick="saveContact()">Add contact</button>
+            <button class="btn small secondary" id="ctcCancelBtn" onclick="cancelContactEdit()" style="display:none;">Cancel</button>
+            <span class="form-msg" id="ctcMsg"></span>
+          </div>
+        </div>
+
+        <!-- Summary by practice -->
+        <div class="panel">
+          <h3>Contacts per practice</h3>
+          <p class="notif-meta" style="margin-bottom:10px;">Click a practice to filter the list below.</p>
+          <div id="contactSummary"></div>
+        </div>
+      </div>
+
+      <!-- View filter + list -->
+      <div class="panel" style="margin-top:16px;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+          <label for="ctcViewSelect" style="font-weight:600; white-space:nowrap;">View contacts for:</label>
+          <select id="ctcViewSelect" onchange="adminContactFilter(this.value)" style="max-width:320px;">
+            <option value="all">All practices</option>
+          </select>
+          <span class="notif-meta" id="ctcCount"></span>
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Covers</th><th>Email</th><th>Phone</th><th>Visible to</th><th></th></tr></thead>
+          <tbody id="adminContactList"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Practice contracts -->
+    <section class="section" id="sec-contracts">
+      <div class="page-header"><div><h1>Practice contracts</h1><p>Edit contracted hours, sessions and funding details for each PCN / practice.</p></div></div>
+      <div class="panel">
+        <label for="contractOrgSelect">Choose a practice / PCN</label>
+        <select id="contractOrgSelect" onchange="loadContractForm()"></select>
+      </div>
+      <div class="panel" id="contractEditPanel" style="display:none;">
+        <div class="form-row">
+          <div><label for="cPharmacists">Pharmacists</label><input type="number" id="cPharmacists" min="0"></div>
+          <div><label for="cTechs">Technicians</label><input type="number" id="cTechs" min="0"></div>
+          <div><label for="cHours">Hours / week</label><input type="number" id="cHours" min="0"></div>
+          <div><label for="cSessions">Sessions / week</label><input type="number" id="cSessions" min="0"></div>
+        </div>
+        <div class="form-row">
+          <div><label for="cFrom">Valid from</label><input type="date" id="cFrom"></div>
+          <div><label for="cTo">Valid to</label><input type="date" id="cTo"></div>
+          <div><label for="cFunding">Funding model</label><input type="text" id="cFunding"></div>
+        </div>
+        <label for="cNotes">Notes</label>
+        <textarea id="cNotes" rows="2"></textarea>
+        <div class="form-actions">
+          <button class="btn" onclick="saveContract()">Save contract</button>
+          <span class="form-msg" id="contractMsg"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Staff accounts -->
+    <!-- CQC Report Manager (super admin only) -->
+    <section class="section" id="sec-cqcreports">
+      <div class="page-header">
+        <div>
+          <h1>CQC Report Manager</h1>
+          <p>Add updated CQC clinical safety data for any practice. Each new upload is stored alongside older snapshots — practices can compare versions using the dropdown in their portal.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+          <div>
+            <label for="cqcMgrPractice" style="font-size:0.85rem; font-weight:600;">Practice</label>
+            <select id="cqcMgrPractice" onchange="renderCQCAdminHistory()" style="margin-top:4px;"></select>
+          </div>
+          <button class="btn" onclick="startAddCQCReport()" style="flex-shrink:0;">+ Add new report</button>
+        </div>
+      </div>
+
+      <!-- Existing report history for selected practice -->
+      <div id="cqcAdminHistoryPanel"></div>
+
+      <!-- Add new report form (hidden initially) -->
+      <div id="cqcAdminAddForm" style="display:none;"></div>
+    </section>
+
+    <section class="section" id="sec-staff-mgmt">
+      <div class="page-header"><div><h1>Accounts</h1><p>Create and manage logins for staff, practices and PCNs. Only admins can add or remove accounts.</p></div></div>
+
+      <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <button class="btn" id="acctTabStaff" onclick="switchAcctTab('staff')">👤 Staff</button>
+        <button class="btn secondary" id="acctTabPractice" onclick="switchAcctTab('practice')">🏥 Practices &amp; PCNs</button>
+        <button class="btn secondary" id="acctTabAdmin" onclick="switchAcctTab('admin')">🔑 Admin accounts</button>
+      </div>
+
+      <!-- Email settings banner -->
+      <div id="emailSettingsBanner" class="panel" style="margin-bottom:18px; padding:14px 18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <strong>📧 Welcome emails</strong>
+            <span class="notif-meta" id="emailStatusLabel" style="margin-left:8px;"></span>
+          </div>
+          <button class="btn small secondary" onclick="openEmailSetup()">⚙️ Configure EmailJS</button>
+        </div>
+        <div id="emailSetupPanel" style="display:none; margin-top:16px; border-top:1px solid var(--css-border); padding-top:16px;">
+          <p style="font-size:0.85rem; color:var(--css-muted); margin-top:0;">EmailJS lets you send emails directly from the browser — no server needed. <a href="https://www.emailjs.com" target="_blank" style="color:var(--css-teal-dark);">Create a free account at emailjs.com</a>, then connect your email provider and create a template using the variables below.</p>
+          <div style="background:var(--css-bg); border-radius:8px; padding:12px 16px; font-size:0.82rem; font-family:monospace; margin-bottom:14px; color:var(--css-text);">
+            Template variables to use in EmailJS:<br><br>
+            <strong>To:</strong> &#123;&#123;to_email&#125;&#125;<br>
+            <strong>Subject:</strong> Welcome to the CSS &#123;&#123;portal_type&#125;&#125;<br><br>
+            Hi &#123;&#123;to_name&#125;&#125;,<br><br>
+            Your CSS &#123;&#123;portal_type&#125;&#125; account has been created.<br>
+            Username: &#123;&#123;username&#125;&#125;<br>
+            Temporary password: &#123;&#123;password&#125;&#125;<br>
+            Sign in at: &#123;&#123;portal_url&#125;&#125;<br><br>
+            Please sign in and change your password at your earliest convenience.<br><br>
+            Regards,<br>Clinical Support Solutions
+          </div>
+          <div class="form-row three-col">
+            <div><label>Service ID</label><input type="text" id="ejsServiceId" placeholder="e.g. service_abc123"></div>
+            <div><label>Template ID</label><input type="text" id="ejsTemplateId" placeholder="e.g. template_xyz789"></div>
+            <div><label>Public key</label><input type="text" id="ejsPublicKey" placeholder="e.g. AbCdEfGhIjKlMnOp"></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" onclick="saveEmailConfig()">Save email settings</button>
+            <button class="btn small secondary" onclick="testWelcomeEmail()">Send test email</button>
+            <span class="form-msg" id="ejsMsg"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======= STAFF TAB ======= -->
+      <div id="acctStaffTab">
+
+      <div class="two-col">
+        <div class="panel">
+          <h3 id="staffFormTitle">Add new staff member</h3>
+          <label for="smFullName">Full name</label>
+          <input type="text" id="smFullName" placeholder="e.g. Priya Patel" oninput="smSuggestUsername()">
+          <label for="smEmail">Email address <span style="font-weight:400; color:var(--css-muted);">welcome email sent here</span></label>
+          <input type="email" id="smEmail" placeholder="e.g. priya.patel@email.com">
+          <label for="smUsername">Username <span style="font-weight:400; color:var(--css-muted);">(used to sign in)</span></label>
+          <input type="text" id="smUsername" placeholder="e.g. p.patel">
+          <label for="smPassword">Temporary password</label>
+          <input type="text" id="smPassword" placeholder="Staff will use this to first sign in">
+          <label for="smRole">Role</label>
+          <select id="smRole">
+            <option value="Pharmacist">Pharmacist</option>
+            <option value="Pharmacy Technician">Pharmacy Technician</option>
+            <option value="Clinical Pharmacist">Clinical Pharmacist</option>
+            <option value="Pharmacy Manager">Pharmacy Manager</option>
+          </select>
+          <label for="smSite">Primary site</label>
+          <select id="smSite"></select>
+          <div class="form-actions">
+            <button class="btn" id="smSaveBtn" onclick="saveStaffMember()">Create account</button>
+            <button class="btn small secondary" id="smCancelBtn" onclick="cancelStaffEdit()" style="display:none;">Cancel</button>
+            <span class="form-msg" id="smMsg"></span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Current staff accounts</h3>
+          <ul class="notif-list" id="staffAccountList"></ul>
+        </div>
+      </div>
+      </div><!-- end acctStaffTab -->
+
+      <!-- ======= PRACTICE / PCN TAB ======= -->
+      <div id="acctPracticeTab" style="display:none;">
+        <div class="two-col">
+          <div class="panel">
+            <h3 id="pmFormTitle">Add new practice / PCN</h3>
+            <label for="pmOrgName">Organisation name</label>
+            <input type="text" id="pmOrgName" placeholder="e.g. Riverside PCN" oninput="pmSuggestUsername()">
+            <label for="pmType">Type</label>
+            <select id="pmType">
+              <option value="GP Practice">GP Practice</option>
+              <option value="PCN">PCN</option>
+              <option value="GP Federation">GP Federation</option>
+              <option value="Other">Other</option>
+            </select>
+            <label for="pmContactName">Primary contact name</label>
+            <input type="text" id="pmContactName" placeholder="e.g. Dr. J. Smith">
+            <label for="pmEmail">Email address <span style="font-weight:400; color:var(--css-muted);">welcome email sent here</span></label>
+            <input type="email" id="pmEmail" placeholder="e.g. manager@riverside-pcn.nhs.uk">
+            <label for="pmUsername">Username <span style="font-weight:400; color:var(--css-muted);">(used to sign in)</span></label>
+            <input type="text" id="pmUsername" placeholder="e.g. riverside-pcn">
+            <label for="pmPassword">Temporary password</label>
+            <input type="text" id="pmPassword" placeholder="They will use this to first sign in">
+            <div class="form-actions">
+              <button class="btn" id="pmSaveBtn" onclick="savePracticeAccount()">Create account</button>
+              <button class="btn small secondary" id="pmCancelBtn" onclick="cancelPracticeEdit()" style="display:none;">Cancel</button>
+              <span class="form-msg" id="pmMsg"></span>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Current practice &amp; PCN accounts</h3>
+            <ul class="notif-list" id="practiceAccountList"></ul>
+          </div>
+        </div>
+      </div><!-- end acctPracticeTab -->
+
+      <!-- ======= ADMIN ACCOUNTS TAB ======= -->
+      <div id="acctAdminTab" style="display:none;">
+        <div class="two-col">
+          <div class="panel">
+            <h3 id="adminAcctFormTitle">Add admin account</h3>
+            <label for="aaFullName">Full name</label>
+            <input type="text" id="aaFullName" placeholder="e.g. Sarah Jones">
+            <label for="aaUsername">Username <span style="font-weight:400; color:var(--css-muted);">(used to sign in)</span></label>
+            <input type="text" id="aaUsername" placeholder="e.g. s.jones">
+            <label for="aaPassword">Password</label>
+            <input type="text" id="aaPassword" placeholder="Temporary password">
+            <label for="aaTier">Access level</label>
+            <select id="aaTier">
+              <option value="limited">🔒 Limited — Dashboard, Contacts &amp; Task ledger only</option>
+              <option value="standard">⚙️ Standard — Full access except account management</option>
+              <option value="super">🔑 Super — Complete access including Accounts</option>
+            </select>
+            <input type="hidden" id="aaEditUsername">
+            <div class="form-actions" style="margin-top:14px;">
+              <button class="btn" onclick="saveAdminAccount()">Save account</button>
+              <button class="btn secondary" onclick="cancelAdminAccountEdit()" id="aaCancelBtn" style="display:none;">Cancel</button>
+              <span class="form-msg" id="aaMsg"></span>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Current admin accounts</h3>
+            <ul class="acct-list" id="adminAccountList" style="list-style:none; padding:0; margin:0;"></ul>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:16px; background:var(--css-bg); border:1px solid var(--css-border); padding:14px 18px;">
+          <p style="margin:0; font-size:0.85rem; color:var(--css-muted);">
+            <strong>Access levels:</strong>&nbsp;
+            🔒 <strong>Limited</strong> — Dashboard, Contacts &amp; Task ledger only. Best for admin staff managing daily tasks.&nbsp;·&nbsp;
+            ⚙️ <strong>Standard</strong> — Full portal except Accounts management.&nbsp;·&nbsp;
+            🔑 <strong>Super</strong> — Complete access including creating and removing accounts.
+          </p>
+        </div>
+      </div><!-- end acctAdminTab -->
+
+      <!-- HR details panel — revealed when admin clicks "HR details" on a staff member -->
+      <div id="smHrPanel" style="display:none; margin-top:22px;">
+        <div class="panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <h3 id="hrPanelTitle" style="margin:0;">HR details</h3>
+            <button class="btn small secondary" onclick="closeHrPanel()">← Back to accounts</button>
+          </div>
+          <p style="font-size:0.85rem; color:var(--css-muted); margin-bottom:20px;">Visible to the staff member in their portal — only admins can edit.</p>
+
+          <!-- Personal details -->
+          <div class="hr-section-title">Personal details</div>
+          <div class="form-row">
+            <div><label for="hrDob">Date of birth</label><input type="date" id="hrDob"></div>
+            <div>
+              <label for="hrGender">Gender</label>
+              <select id="hrGender">
+                <option value="">Prefer not to say</option>
+                <option>Male</option><option>Female</option>
+                <option>Non-binary</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div><label for="hrMobile">Mobile</label><input type="text" id="hrMobile" placeholder="e.g. 07700 900001"></div>
+            <div><label for="hrHomeTel">Home telephone</label><input type="text" id="hrHomeTel" placeholder="e.g. 020 7000 0000"></div>
+          </div>
+          <label for="hrEmail">Email</label>
+          <input type="email" id="hrEmail" placeholder="e.g. jane.smith@email.com">
+          <label for="hrAddress">Home address</label>
+          <textarea id="hrAddress" rows="2" placeholder="Full home address"></textarea>
+
+          <!-- Emergency contact -->
+          <div class="hr-section-title">Emergency contact</div>
+          <div class="form-row three-col">
+            <div><label for="hrEmgName">Name</label><input type="text" id="hrEmgName" placeholder="e.g. John Smith"></div>
+            <div><label for="hrEmgRel">Relationship</label><input type="text" id="hrEmgRel" placeholder="e.g. Spouse"></div>
+            <div><label for="hrEmgPhone">Phone</label><input type="text" id="hrEmgPhone" placeholder="e.g. 07700 900002"></div>
+          </div>
+
+          <!-- Employment -->
+          <div class="hr-section-title">Employment</div>
+          <div class="form-row three-col">
+            <div><label for="hrStartDate">Start / joining date</label><input type="date" id="hrStartDate"></div>
+            <div><label for="hrReviewDate">Review date</label><input type="date" id="hrReviewDate"></div>
+            <div><label for="hrLeavingDate">Leaving date</label><input type="date" id="hrLeavingDate"></div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label for="hrStatus">Status</label>
+              <select id="hrStatus">
+                <option>Active</option><option>On leave</option><option>Left</option>
+              </select>
+            </div>
+            <div>
+              <label for="hrContractType">Contract type</label>
+              <select id="hrContractType">
+                <option>PAYE</option><option>Self-employed</option>
+                <option>Ltd Company</option><option>Zero-hours</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row three-col">
+            <div><label for="hrHours">Hours / week</label><input type="number" id="hrHours" min="0" step="0.5" placeholder="e.g. 37.5"></div>
+            <div><label for="hrHourlyRate">Hourly rate (£)</label><input type="number" id="hrHourlyRate" min="0" step="0.01" placeholder="e.g. 28.00"></div>
+            <div><label for="hrNiNumber">NI number</label><input type="text" id="hrNiNumber" placeholder="e.g. AB 12 34 56 C"></div>
+          </div>
+          <div class="form-row">
+            <div><label for="hrEmployeeId">Employee / ref ID</label><input type="text" id="hrEmployeeId" placeholder="e.g. CSS-004"></div>
+            <div>
+              <label>Prescriber type</label>
+              <div class="hr-radio-group">
+                <label class="hr-radio"><input type="radio" name="hrPrescriberType" value="Non Prescriber"> Non Prescriber</label>
+                <label class="hr-radio"><input type="radio" name="hrPrescriberType" value="Pharmacist Prescriber"> Pharmacist Prescriber</label>
+                <label class="hr-radio"><input type="radio" name="hrPrescriberType" value="Pharmacy Technician"> Pharmacy Technician</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clinical systems -->
+          <div class="hr-section-title">Clinical systems &amp; access</div>
+          <div class="form-row">
+            <div><label for="hrSmartcard">Smartcard number</label><input type="text" id="hrSmartcard" placeholder="e.g. 614200000004"></div>
+            <div style="display:flex; gap:24px; align-items:flex-end; padding-bottom:4px;">
+              <label class="hr-check"><input type="checkbox" id="hrSystemOne"> SystmOne access</label>
+              <label class="hr-check"><input type="checkbox" id="hrEmis"> EMIS access</label>
+            </div>
+          </div>
+
+          <!-- Professional registration -->
+          <div class="hr-section-title">Professional registration</div>
+          <div class="form-row">
+            <div><label for="hrGphcNumber">GPhC / HCPC number</label><input type="text" id="hrGphcNumber" placeholder="e.g. 1234567"></div>
+            <div><label for="hrGphcExpiry">Registration expiry</label><input type="date" id="hrGphcExpiry"></div>
+          </div>
+
+          <!-- Right to work -->
+          <div class="hr-section-title">Right to work</div>
+          <div class="form-row">
+            <div>
+              <label for="hrRtwDoc">Document type</label>
+              <select id="hrRtwDoc">
+                <option>British passport</option>
+                <option>EU Settled Status</option>
+                <option>Biometric Residence Permit (BRP)</option>
+                <option>Visa (work permit)</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div><label for="hrRtwExpiry">Expiry <span style="font-weight:400; color:var(--css-muted);">(blank = indefinite)</span></label><input type="date" id="hrRtwExpiry"></div>
+          </div>
+
+          <!-- DBS -->
+          <div class="hr-section-title">DBS check</div>
+          <div class="form-row three-col">
+            <div><label for="hrDbsCert">Certificate number</label><input type="text" id="hrDbsCert" placeholder="e.g. 001234567890"></div>
+            <div><label for="hrDbsDate">Issue date</label><input type="date" id="hrDbsDate"></div>
+            <div style="display:flex; align-items:flex-end; padding-bottom:4px;">
+              <label class="hr-check"><input type="checkbox" id="hrAutoDbs"> Auto DBS updates</label>
+            </div>
+          </div>
+
+          <!-- Limited company & bank details -->
+          <div class="hr-section-title">Limited company &amp; bank details</div>
+          <p style="color:var(--css-muted); font-size:0.83rem; margin:-4px 0 10px;">Staff can also update these fields themselves from their My details page.</p>
+          <div class="form-row three-col">
+            <div><label for="hrCompanyName">Company name (Ltd)</label><input type="text" id="hrCompanyName" placeholder="e.g. Smith Pharmacy Ltd"></div>
+            <div><label for="hrCompanyRegNumber">Companies House reg no.</label><input type="text" id="hrCompanyRegNumber" placeholder="e.g. 12345678"></div>
+            <div><label for="hrVatNumber">VAT number <span style="font-weight:400; color:var(--css-muted);">if registered</span></label><input type="text" id="hrVatNumber" placeholder="e.g. GB 123 4567 89"></div>
+          </div>
+          <div class="form-row">
+            <div><label for="hrCompanyAddress">Registered address</label><input type="text" id="hrCompanyAddress" placeholder="Company registered address"></div>
+          </div>
+          <div class="form-row three-col">
+            <div><label for="hrBankName">Bank name</label><input type="text" id="hrBankName" placeholder="e.g. Barclays"></div>
+            <div><label for="hrSortCode">Sort code</label><input type="text" id="hrSortCode" placeholder="e.g. 20-00-00"></div>
+            <div><label for="hrAccountNumber">Account number</label><input type="text" id="hrAccountNumber" placeholder="e.g. 12345678"></div>
+          </div>
+
+          <!-- Notes -->
+          <div class="hr-section-title">Notes</div>
+          <textarea id="hrNotes" rows="2" placeholder="Any additional notes (visible to staff member)"></textarea>
+
+          <div class="form-actions" style="margin-top:18px;">
+            <button class="btn" onclick="saveHrDetails()">Save HR details</button>
+            <span class="form-msg" id="hrMsg"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Task ledger -->
+    <section class="section" id="sec-ledger">
+      <div class="page-header">
+        <div>
+          <h1>Task ledger</h1>
+          <p>Daily task view — each admin's working day at a glance.</p>
+        </div>
+        <div class="ledger-topbar-right">
+          <button class="ledger-nav-arrow" onclick="ledgerPrevDay()">&#8249;</button>
+          <span class="ledger-date-label" id="ledgerDateLabel"></span>
+          <button class="ledger-nav-arrow" onclick="ledgerNextDay()">&#8250;</button>
+          <button class="btn small secondary" onclick="ledgerGoToday()">Today</button>
+          <button class="btn small secondary" id="ledgerScheduleBtn" onclick="openScheduleModal()" style="display:none;">⚙️ Schedules</button>
+        </div>
+      </div>
+
+      <!-- Column day view — one column per admin staff member -->
+      <div class="lc-columns" id="ledgerCols"></div>
+    </section>
+
+    <!-- Incident reports -->
+    <section class="section" id="sec-incidents">
+      <div class="page-header"><div><h1>Incident reports</h1><p>Staff Statement &amp; Reflective Account submissions from clinical staff.</p></div></div>
+      <div id="adminIncidentList"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Task ledger add/edit modal -->
+<div class="ledger-modal-backdrop" id="taskFormBackdrop" onclick="closeTaskForm()" style="display:none;"></div>
+<div class="ledger-modal" id="taskFormModal" style="display:none;">
+  <div class="ledger-modal-header">
+    <span id="taskFormTitle">Add task</span>
+    <button class="ledger-modal-close" onclick="closeTaskForm()">✕</button>
+  </div>
+  <div class="ledger-modal-body">
+    <input type="hidden" id="taskEditId">
+
+    <div class="form-group">
+      <label for="taskTitle">Task <span style="color:#e53935;">*</span></label>
+      <input type="text" id="taskTitle" placeholder="e.g. Chase referral for Mrs Ahmed — send to cardiology" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label for="taskNotes">Notes / details</label>
+      <textarea id="taskNotes" rows="3" placeholder="Any extra context, phone numbers, reference numbers…"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="taskCategory">Category</label>
+        <select id="taskCategory">
+          <option value="general">🗒️ General</option>
+          <option value="phone">📞 Phone call</option>
+          <option value="followup">📨 Follow-up</option>
+          <option value="prescription">💊 Prescription</option>
+          <option value="referral">📤 Referral</option>
+          <option value="admin">🗂️ Admin / filing</option>
+          <option value="urgent">🔴 Urgent</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="taskPriority">Priority</label>
+        <select id="taskPriority">
+          <option value="routine">Routine</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="taskDueDate">Date</label>
+        <input type="date" id="taskDueDate">
+      </div>
+      <div class="form-group">
+        <label for="taskAssignedTo">Staff member</label>
+        <select id="taskAssignedTo"></select>
+      </div>
+    </div>
+  </div>
+  <div class="ledger-modal-footer">
+    <button class="btn secondary" onclick="closeTaskForm()">Cancel</button>
+    <button class="btn" onclick="saveTask()">Save task</button>
+  </div>
+</div>
+
+<!-- Work schedule modal (super admin only) -->
+<div class="ledger-modal-backdrop" id="scheduleBackdrop" onclick="closeScheduleModal()" style="display:none;"></div>
+<div class="ledger-modal" id="scheduleModal" style="display:none; max-width:440px;">
+  <div class="ledger-modal-header">
+    <span>Set working days</span>
+    <button class="ledger-modal-close" onclick="closeScheduleModal()">✕</button>
+  </div>
+  <div class="ledger-modal-body">
+    <div class="form-group" style="margin-bottom:16px;">
+      <label>Staff member</label>
+      <select id="schedulePersonSel"></select>
+    </div>
+    <p style="margin:0 0 12px; color:var(--css-muted); font-size:0.875rem;">
+      Tick the days this person normally works. Their column will show as "Day off" on other days.
+    </p>
+    <div class="schedule-day-grid">
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Mon"><span>Mon</span></label>
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Tue"><span>Tue</span></label>
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Wed"><span>Wed</span></label>
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Thu"><span>Thu</span></label>
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Fri"><span>Fri</span></label>
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Sat"><span>Sat</span></label>
+      <label class="schedule-day-check"><input type="checkbox" name="schedDay" value="Sun"><span>Sun</span></label>
+    </div>
+  </div>
+  <div class="ledger-modal-footer">
+    <button class="btn secondary" onclick="closeScheduleModal()">Cancel</button>
+    <button class="btn" onclick="saveSchedule()">Save schedule</button>
+  </div>
+</div>
+
+<!-- Incident report view modal -->
+<div class="inv-modal-backdrop" id="irViewBackdrop" onclick="closeIncidentView()" style="display:none;"></div>
+<div class="inv-modal" id="irViewModal" style="display:none;">
+  <div class="inv-modal-toolbar">
+    <button class="inv-modal-close" onclick="closeIncidentView()">✕ Close</button>
+    <button class="btn small secondary" onclick="window.print()">🖨️ Print / Save PDF</button>
+    <span id="irAdminActions"></span>
+  </div>
+  <div id="irViewContent"></div>
+</div>
+
+<!-- Invoice modal -->
+<div class="inv-modal-backdrop" id="invModalBackdrop" onclick="closeInvoiceModal()" style="display:none;"></div>
+<div class="inv-modal" id="invModal" style="display:none;">
+  <div class="inv-modal-toolbar">
+    <button class="inv-modal-close" onclick="closeInvoiceModal()">✕ Close</button>
+    <button class="btn small secondary" onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+  <div id="invModalContent"></div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/notifs.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

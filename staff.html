@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Staff Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="brand">CSS Staff Portal<small>Clinical Support Solutions</small></div>
+    <div class="who" id="whoBox"></div>
+
+    <button class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-item" data-section="rota" onclick="showSection('rota')"><span class="nav-icon">🗓️</span> Rota</button>
+    <button class="nav-item" data-section="announcements" onclick="showSection('announcements')"><span class="nav-icon">📣</span> Announcements</button>
+    <button class="nav-item" data-section="documents" onclick="showSection('documents')"><span class="nav-icon">📄</span> SOPs &amp; Documents<span class="nav-badge" id="docsNavBadge" style="display:none;"></span></button>
+    <button class="nav-item" data-section="holiday" onclick="showSection('holiday')"><span class="nav-icon">🌴</span> Holiday requests</button>
+    <button class="nav-item" data-section="invoicing" onclick="showSection('invoicing')"><span class="nav-icon">💷</span> Invoicing</button>
+    <button class="nav-item" data-section="tools" onclick="showSection('tools')"><span class="nav-icon">🧰</span> Tools</button>
+    <button class="nav-item" data-section="mydetails" onclick="showSection('mydetails')"><span class="nav-icon">👤</span> My details</button>
+
+    <button class="nav-item logout-btn" onclick="logout()"><span class="nav-icon">↩️</span> Sign out</button>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="bell-wrap" id="bellWrap">
+        <button class="bell-btn" id="bellBtn" onclick="toggleBellDropdown()" title="Notifications">
+          🔔<span class="bell-badge" id="bellBadge"></span>
+        </button>
+        <div class="bell-dropdown" id="bellDropdown" style="display:none;">
+          <div class="bell-dropdown-header">Notifications<button class="bell-clear" id="bellClearAll">Mark all read</button></div>
+          <div id="bellList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="note-banner">Prototype mode — data shown here is sample data stored in your browser only. Nothing is sent to a server.</div>
+
+    <!-- Dashboard -->
+    <section class="section active" id="sec-dashboard">
+      <div class="page-header"><div><h1>Welcome back</h1><p id="welcomeLine"></p></div></div>
+      <div class="cards-grid">
+        <div class="stat-card stat-card--link" onclick="showSection('rota')"><div class="num" id="statShifts">–</div><div class="label">Shifts this week</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('announcements')"><div class="num" id="statAnnouncements">–</div><div class="label">New announcements</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('holiday')"><div class="num" id="statHoliday">–</div><div class="label">Holiday requests pending</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('invoicing')"><div class="num" id="statInvoices">–</div><div class="label">Invoices awaiting action</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('documents')"><div class="num" id="statRenewals">–</div><div class="label">Renewals due soon / overdue</div></div>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <h2>Latest announcements</h2>
+          <ul class="notif-list" id="dashAnnouncements"></ul>
+        </div>
+        <div class="panel">
+          <h2>Your next shifts</h2>
+          <ul class="notif-list" id="dashRota"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rota -->
+    <section class="section" id="sec-rota">
+      <div class="page-header"><div><h1>Rota</h1><p>Your published shifts at CSS clinical sites. Staff can only see their own rota.</p></div></div>
+
+      <div class="cards-grid">
+        <div class="stat-card"><div class="num" id="rotaStatShifts">–</div><div class="label">Your shifts this week</div></div>
+        <div class="stat-card"><div class="num" id="rotaStatHours">–</div><div class="label">Your hours this week</div></div>
+        <div class="stat-card"><div class="num" id="rotaStatSites">–</div><div class="label">Sites you're covering</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="rota-toolbar">
+          <h3 style="margin:0;" id="rotaWeekLabel">Your weekly shifts</h3>
+          <div class="rota-filters">
+            <button class="btn small secondary" onclick="rotaPrevWeek()">‹ Previous</button>
+            <button class="btn small secondary" onclick="rotaThisWeek()">This week</button>
+            <button class="btn small secondary" onclick="rotaNextWeek()">Next ›</button>
+          </div>
+        </div>
+        <p style="color:var(--css-muted); font-size:0.85rem; margin-top:-6px;">Your shifts repeat on the same days and times each week. Step forward or back to check any week.</p>
+        <div class="rota-days" id="rotaDays"></div>
+      </div>
+
+    </section>
+
+    <!-- Announcements -->
+    <section class="section" id="sec-announcements">
+      <div class="page-header"><div><h1>Announcements</h1><p>Updates and notices from the CSS team.</p></div></div>
+      <div class="panel">
+        <ul class="notif-list" id="fullAnnouncements"></ul>
+      </div>
+    </section>
+
+    <!-- Documents -->
+    <section class="section" id="sec-documents">
+      <div class="page-header"><div><h1>Documents</h1><p>CSS shared documents and your personal certificates.</p></div></div>
+
+      <div class="doc-tabs" id="docTabs">
+        <button class="doc-tab active" data-cat="css" onclick="filterDocs('css')">CSS Documents</button>
+        <button class="doc-tab" data-cat="mycerts" onclick="filterDocs('mycerts')">My Certificates &amp; HR Docs</button>
+      </div>
+
+      <!-- CSS shared documents panel -->
+      <div id="cssdocPanel">
+        <div class="panel">
+          <ul class="doc-list" id="staffDocList"></ul>
+        </div>
+      </div>
+
+      <!-- My personal certificates panel -->
+      <div id="mycertsPanel" style="display:none;">
+        <div class="panel">
+          <h3>Upload a certificate or HR document</h3>
+          <p style="color:var(--css-muted); font-size:0.88rem; margin-top:-4px;">Upload your training certificates, HR documents and compliance records. Admin will review and set an expiry date — you'll be reminded before it's due.</p>
+          <div class="form-row">
+            <div>
+              <label for="certTitle">Document name</label>
+              <input type="text" id="certTitle" placeholder="e.g. Anaphylaxis certificate 2026">
+            </div>
+            <div>
+              <label for="certCategory">Category</label>
+              <select id="certCategory">
+                <option>Training Certificate</option>
+                <option>HR Document</option>
+                <option>Professional Registration</option>
+                <option>Insurance</option>
+                <option>Compliance</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <label for="certFile">Attach file <span style="color:var(--css-muted); font-size:0.8rem;">PDF, Word, image — max 5 MB</span></label>
+          <input type="file" id="certFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="padding:6px 0;">
+          <div class="form-actions" style="margin-top:12px;">
+            <button class="btn" onclick="uploadCertificate()">Submit for approval</button>
+            <span class="form-msg" id="certMsg"></span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>My documents</h3>
+          <div id="myCertsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Holiday requests -->
+    <section class="section" id="sec-holiday">
+      <div class="page-header"><div><h1>Holiday requests</h1><p>Submit and track your annual leave requests.</p></div></div>
+      <div class="panel">
+        <h3>New request</h3>
+        <div class="form-row">
+          <div><label for="hrFrom">From</label><input type="date" id="hrFrom" onchange="renderHolidayShiftPreview()"></div>
+          <div><label for="hrTo">To</label><input type="date" id="hrTo" onchange="renderHolidayShiftPreview()"></div>
+        </div>
+        <div id="hrShiftsWrap" style="display:none;">
+          <label>Shifts that need cover</label>
+          <p style="color:var(--css-muted); font-size:0.85rem; margin-top:-4px;">These are your regular shifts that fall within the dates above. Tick the ones you need off — untick any you'll still work.</p>
+          <ul class="notif-list" id="hrShiftsList" style="margin-bottom:14px;"></ul>
+        </div>
+        <label for="hrNote">Note (optional)</label>
+        <textarea id="hrNote" rows="2" placeholder="e.g. reason, cover arrangements"></textarea>
+        <div class="form-actions">
+          <button class="btn" onclick="submitHoliday()">Submit request</button>
+          <span class="form-msg" id="hrMsg"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Your requests</h3>
+        <table>
+          <thead><tr><th>From</th><th>To</th><th>Shifts off</th><th>Note</th><th>Status</th><th></th></tr></thead>
+          <tbody id="holidayTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Invoicing -->
+    <section class="section" id="sec-invoicing">
+      <div class="page-header"><div><h1>Invoicing</h1><p>Submit your monthly invoice from the 1st of each month for the previous month.</p></div></div>
+      <div class="panel">
+        <h3>New invoice</h3>
+        <label for="invMonth">Month to claim for</label>
+        <select id="invMonth" onchange="renderInvoiceShifts()" style="max-width:280px;"></select>
+
+        <div id="invShiftsWrap" style="display:none; margin-top:20px;">
+          <label>Your shifts this month</label>
+          <p style="color:var(--css-muted); font-size:0.85rem; margin-top:-4px;">Tick the shifts you're claiming for. Approved annual leave and bank holidays cannot be selected.</p>
+          <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <button class="btn small secondary" type="button" onclick="document.querySelectorAll('.inv-shift-cb:not(:disabled)').forEach(c=>c.checked=true); updateInvoiceSummary();">Select all</button>
+            <button class="btn small secondary" type="button" onclick="document.querySelectorAll('.inv-shift-cb:not(:disabled)').forEach(c=>c.checked=false); updateInvoiceSummary();">Clear all</button>
+          </div>
+          <ul class="notif-list" id="invShiftsList" style="margin-bottom:14px;"></ul>
+          <div id="invSummary"></div>
+          <label for="invAmount">Calculated amount (£)</label>
+          <input type="number" id="invAmount" readonly tabindex="-1"
+            style="max-width:220px; background:var(--css-surface); color:var(--css-muted); cursor:not-allowed;"
+            title="Calculated automatically from your hourly rate — cannot be edited">
+          <label for="invExtraCost" style="margin-top:14px;">Additional costs (£) <span style="font-weight:400; color:var(--css-muted);">optional — e.g. mileage, parking, expenses</span></label>
+          <input type="number" id="invExtraCost" placeholder="0.00" step="0.01" min="0" style="max-width:220px;" oninput="updateInvoiceTotal()">
+          <label for="invExtraDesc" style="margin-top:10px;">Description of additional costs <span style="font-weight:400; color:var(--css-muted);">required if adding extra costs</span></label>
+          <input type="text" id="invExtraDesc" placeholder="e.g. Mileage — 48 miles @ £0.45/mile" style="max-width:480px;">
+          <div id="invTotalLine" style="display:none; margin-top:12px; background:var(--css-surface); border-radius:8px; padding:10px 14px; font-size:0.9rem;"></div>
+          <div class="form-actions">
+            <button class="btn" onclick="submitInvoice()">Submit invoice</button>
+            <span class="form-msg" id="invMsg"></span>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Your invoices</h3>
+        <table>
+          <thead><tr><th>Reference</th><th>Period</th><th>Shifts</th><th>Hours</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+          <tbody id="invoiceTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tools -->
+    <section class="section" id="sec-tools">
+      <div class="page-header"><div><h1>Tools</h1><p>Quick links to the things you use day to day.</p></div></div>
+      <div class="tools-grid">
+        <a class="tool-card" onclick="alert('Would open the CSS clinical reference / formulary lookup.')"><div class="ti">💊</div><h4>Formulary &amp; clinical reference</h4><p>Look up local formulary guidance and clinical pathways.</p></a>
+        <a class="tool-card tool-card--feature" onclick="openCalc('egfr')"><div class="ti">🧮</div><h4>Clinical calculators</h4><p>eGFR, CrCl, BMI, IBW, HbA1c and more.</p><span class="tool-card-badge">7 calculators</span></a>
+
+        <a class="tool-card" onclick="showIncidentForm()"><div class="ti">⚠️</div><h4>Incident reporting</h4><p>Report incidents, near misses and safety concerns.</p></a>
+      </div>
+    </section>
+
+    <!-- My details (HR profile — read-only, maintained by admin) -->
+    <section class="section" id="sec-mydetails">
+      <div class="page-header"><div><h1>My details</h1><p>Your HR record held by CSS. Contact the office if anything needs updating.</p></div></div>
+      <div id="myDetailsContent"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Announcement modal -->
+<div class="ann-modal-backdrop" id="annModalBackdrop" onclick="closeAnnModal()" style="display:none;"></div>
+<div class="ann-modal" id="annModal" style="display:none;">
+  <div class="ann-modal-header">
+    <div>
+      <span class="ann-modal-pill" id="annModalPill"></span>
+      <span class="ann-modal-date" id="annModalDate"></span>
+    </div>
+    <button class="ann-modal-close" onclick="closeAnnModal()">✕</button>
+  </div>
+  <h2 class="ann-modal-title" id="annModalTitle"></h2>
+  <div class="ann-modal-body" id="annModalBody"></div>
+</div>
+
+<!-- Clinical calculators modal -->
+<div class="calc-backdrop" id="calcBackdrop" onclick="closeCalc()" style="display:none;"></div>
+<div class="calc-modal" id="calcModal" style="display:none;">
+
+  <div class="calc-header">
+    <div class="calc-header-left">
+      <span class="calc-header-icon">🧮</span>
+      <span>Clinical Calculators</span>
+    </div>
+    <button class="calc-close" onclick="closeCalc()">✕ Close</button>
+  </div>
+
+  <div class="calc-body">
+
+    <!-- Tab sidebar -->
+    <div class="calc-tabs">
+      <button class="calc-tab active" id="ctab-egfr"  onclick="switchCalc('egfr')">
+        <span class="calc-tab-icon">🫘</span>
+        <span class="calc-tab-label"><strong>eGFR</strong><small>CKD-EPI 2021</small></span>
+      </button>
+      <button class="calc-tab" id="ctab-crcl" onclick="switchCalc('crcl')">
+        <span class="calc-tab-icon">💊</span>
+        <span class="calc-tab-label"><strong>CrCl</strong><small>Cockcroft-Gault</small></span>
+      </button>
+      <button class="calc-tab" id="ctab-bmi" onclick="switchCalc('bmi')">
+        <span class="calc-tab-icon">⚖️</span>
+        <span class="calc-tab-label"><strong>BMI</strong><small>Body mass index</small></span>
+      </button>
+      <button class="calc-tab" id="ctab-ibw" onclick="switchCalc('ibw')">
+        <span class="calc-tab-icon">📏</span>
+        <span class="calc-tab-label"><strong>IBW / ABW</strong><small>Ideal body weight</small></span>
+      </button>
+      <button class="calc-tab" id="ctab-hba1c" onclick="switchCalc('hba1c')">
+        <span class="calc-tab-icon">🩸</span>
+        <span class="calc-tab-label"><strong>HbA1c</strong><small>Unit converter</small></span>
+      </button>
+      <button class="calc-tab" id="ctab-units" onclick="switchCalc('units')">
+        <span class="calc-tab-icon">🍷</span>
+        <span class="calc-tab-label"><strong>Alcohol</strong><small>Unit calculator</small></span>
+      </button>
+      <button class="calc-tab" id="ctab-bp" onclick="switchCalc('bp')">
+        <span class="calc-tab-icon">🫀</span>
+        <span class="calc-tab-label"><strong>BP Monitor</strong><small>7-day HBPM log</small></span>
+      </button>
+    </div>
+
+    <!-- Calculator panels -->
+    <div class="calc-content">
+
+      <!-- ===== eGFR ===== -->
+      <div class="calc-panel" id="cpanel-egfr">
+        <h2>eGFR — CKD-EPI 2021</h2>
+        <p class="calc-intro">Estimates glomerular filtration rate using the 2021 CKD-EPI equation (race-free). Use for staging CKD and guiding prescribing decisions.</p>
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>Age (years)</label>
+            <input type="number" id="egfr-age" min="18" max="120" placeholder="e.g. 65" oninput="calcEgfr()">
+          </div>
+          <div class="calc-field">
+            <label>Sex</label>
+            <select id="egfr-sex" onchange="calcEgfr()">
+              <option value="">Select…</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div class="calc-field">
+            <label>Serum creatinine</label>
+            <div style="display:flex; gap:8px;">
+              <input type="number" id="egfr-scr" min="0" step="0.1" placeholder="e.g. 90" oninput="calcEgfr()" style="flex:1;">
+              <select id="egfr-unit" onchange="calcEgfr()" style="width:120px;">
+                <option value="umol">µmol/L</option>
+                <option value="mgdl">mg/dL</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="calc-result" id="egfr-result" style="display:none;"></div>
+        <div class="calc-note">CKD-EPI 2021 (Inker et al., NEJM 2021). Does not include race variable. Creatinine assay assumed to be IDMS-traceable.</div>
+      </div>
+
+      <!-- ===== CrCl ===== -->
+      <div class="calc-panel" id="cpanel-crcl" style="display:none;">
+        <h2>Creatinine Clearance — Cockcroft-Gault</h2>
+        <p class="calc-intro">Estimates creatinine clearance for drug dosing. Most medicine datasheets reference this formula — use for dose adjustment in renal impairment.</p>
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>Age (years)</label>
+            <input type="number" id="crcl-age" min="18" max="120" placeholder="e.g. 72" oninput="calcCrcl()">
+          </div>
+          <div class="calc-field">
+            <label>Sex</label>
+            <select id="crcl-sex" onchange="calcCrcl()">
+              <option value="">Select…</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div class="calc-field">
+            <label>Weight (kg) <span style="font-weight:400; color:var(--css-muted);">use IBW if obese</span></label>
+            <input type="number" id="crcl-wt" min="0" step="0.5" placeholder="e.g. 70" oninput="calcCrcl()">
+          </div>
+          <div class="calc-field">
+            <label>Serum creatinine</label>
+            <div style="display:flex; gap:8px;">
+              <input type="number" id="crcl-scr" min="0" step="0.1" placeholder="e.g. 110" oninput="calcCrcl()" style="flex:1;">
+              <select id="crcl-unit" onchange="calcCrcl()" style="width:120px;">
+                <option value="umol">µmol/L</option>
+                <option value="mgdl">mg/dL</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="calc-result" id="crcl-result" style="display:none;"></div>
+        <div class="calc-note">Cockcroft DW, Gault MH. Nephron. 1976. Use actual body weight unless BMI &gt; 30, in which case use ideal body weight (calculate with the IBW tab).</div>
+      </div>
+
+      <!-- ===== BMI ===== -->
+      <div class="calc-panel" id="cpanel-bmi" style="display:none;">
+        <h2>Body Mass Index</h2>
+        <p class="calc-intro">Calculates BMI from weight and height with NHS weight category interpretation. Note: BMI is a screening tool and does not directly measure body fat.</p>
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>Height (cm)</label>
+            <input type="number" id="bmi-ht" min="100" max="250" placeholder="e.g. 168" oninput="calcBmi()">
+          </div>
+          <div class="calc-field">
+            <label>Weight (kg)</label>
+            <input type="number" id="bmi-wt" min="20" max="300" step="0.5" placeholder="e.g. 75" oninput="calcBmi()">
+          </div>
+        </div>
+        <div class="calc-result" id="bmi-result" style="display:none;"></div>
+        <div class="calc-note">NHS weight categories for adults. For patients of Asian background, lower thresholds may apply (overweight ≥ 23, obese ≥ 27.5).</div>
+      </div>
+
+      <!-- ===== IBW / ABW ===== -->
+      <div class="calc-panel" id="cpanel-ibw" style="display:none;">
+        <h2>Ideal &amp; Adjusted Body Weight</h2>
+        <p class="calc-intro">Devine formula IBW and adjusted body weight. Use IBW (or ABW if obese) for dosing renally-cleared or narrow-therapeutic-index medicines.</p>
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>Height (cm)</label>
+            <input type="number" id="ibw-ht" min="100" max="250" placeholder="e.g. 175" oninput="calcIbw()">
+          </div>
+          <div class="calc-field">
+            <label>Sex</label>
+            <select id="ibw-sex" onchange="calcIbw()">
+              <option value="">Select…</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div class="calc-field">
+            <label>Actual weight (kg) <span style="font-weight:400; color:var(--css-muted);">for ABW calculation</span></label>
+            <input type="number" id="ibw-wt" min="20" max="300" step="0.5" placeholder="e.g. 95" oninput="calcIbw()">
+          </div>
+        </div>
+        <div class="calc-result" id="ibw-result" style="display:none;"></div>
+        <div class="calc-note">Devine BJ. Drug Intell Clin Pharm. 1974. ABW = IBW + 0.4 × (actual weight − IBW). ABW is only applicable when actual weight exceeds IBW.</div>
+      </div>
+
+      <!-- ===== HbA1c ===== -->
+      <div class="calc-panel" id="cpanel-hba1c" style="display:none;">
+        <h2>HbA1c Converter</h2>
+        <p class="calc-intro">Converts between IFCC (mmol/mol) and NGSP (%) units. UK labs report in mmol/mol; some clinical guidelines and older references use %.</p>
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>HbA1c in % <span style="font-weight:400; color:var(--css-muted);">NGSP</span></label>
+            <input type="number" id="hba1c-pct" min="3" max="20" step="0.1" placeholder="e.g. 7.5" oninput="calcHba1c('pct')">
+          </div>
+          <div class="calc-field">
+            <label>HbA1c in mmol/mol <span style="font-weight:400; color:var(--css-muted);">IFCC</span></label>
+            <input type="number" id="hba1c-mmol" min="10" max="200" step="1" placeholder="e.g. 58" oninput="calcHba1c('mmol')">
+          </div>
+        </div>
+        <div class="calc-result" id="hba1c-result" style="display:none;"></div>
+        <div class="calc-note">IFCC–NGSP master equation. NICE type 2 diabetes diagnosis threshold: ≥ 48 mmol/mol (6.5%). HbA1c target in type 2 diabetes (on medication): typically 48–58 mmol/mol (6.5–7.5%).</div>
+      </div>
+
+      <!-- ===== Alcohol units ===== -->
+      <div class="calc-panel" id="cpanel-units" style="display:none;">
+        <h2>Alcohol Unit Calculator</h2>
+        <p class="calc-intro">Calculate units for patient counselling, AUDIT scoring and medicines interactions. UK low-risk guidelines: ≤ 14 units/week for both men and women.</p>
+        <div class="calc-fields">
+          <div class="calc-field">
+            <label>Volume (mL)</label>
+            <input type="number" id="alc-vol" min="0" step="1" placeholder="e.g. 250" oninput="calcAlc()">
+          </div>
+          <div class="calc-field">
+            <label>ABV (%)</label>
+            <input type="number" id="alc-abv" min="0" max="100" step="0.1" placeholder="e.g. 13" oninput="calcAlc()">
+          </div>
+          <div class="calc-field">
+            <label>Frequency <span style="font-weight:400; color:var(--css-muted);">to calculate weekly total</span></label>
+            <select id="alc-freq" onchange="calcAlc()">
+              <option value="1">Once (single drink)</option>
+              <option value="7">Daily</option>
+              <option value="5">5 days / week</option>
+              <option value="4">4 days / week</option>
+              <option value="3">3 days / week</option>
+              <option value="2">Twice a week</option>
+            </select>
+          </div>
+        </div>
+        <div class="calc-result" id="alc-result" style="display:none;"></div>
+        <div class="calc-note">1 UK unit = 10 mL (8 g) pure alcohol. Formula: units = (volume mL × ABV%) ÷ 1000. UK Chief Medical Officers' low-risk guidelines: no more than 14 units per week, spread over 3+ days.</div>
+      </div>
+
+      <!-- ===== BP 7-day HBPM ===== -->
+      <div class="calc-panel" id="cpanel-bp" style="display:none;">
+        <h2>Blood Pressure — 7-Day Home Monitor Log</h2>
+        <p class="calc-intro">Enter readings taken at home over 7 days (morning and evening). Per NICE NG136, Day 1 readings are excluded from the average. Averaged results are interpreted against NICE HBPM thresholds.</p>
+
+        <div class="bp-protocol-bar">
+          <span>📋 NICE NG136 protocol</span>
+          <span>Take 2 readings 1 min apart, morning &amp; evening, for 7 days.</span>
+          <span>Sit quietly for 5 mins before measuring.</span>
+          <span>Discard Day 1 — average Days 2–7.</span>
+        </div>
+
+        <div class="bp-table-wrap">
+          <table class="bp-table" id="bpTable">
+            <thead>
+              <tr>
+                <th rowspan="2" class="bp-th-day">Day</th>
+                <th colspan="3" class="bp-th-session">🌅 Morning</th>
+                <th colspan="3" class="bp-th-session">🌆 Evening</th>
+              </tr>
+              <tr>
+                <th>Systolic</th><th>Diastolic</th><th>Pulse</th>
+                <th>Systolic</th><th>Diastolic</th><th>Pulse</th>
+              </tr>
+            </thead>
+            <tbody id="bpRows"></tbody>
+            <tfoot id="bpFoot"></tfoot>
+          </table>
+        </div>
+
+        <div class="calc-result" id="bp-result" style="display:none;"></div>
+        <div class="calc-note">NICE NG136 (Hypertension in adults, 2019, updated 2023). HBPM thresholds: Stage 1 ≥ 135/85 mmHg; Stage 2 ≥ 150/95 mmHg; Severe ≥ 180/110 mmHg. Readings below 90/60 mmHg suggest hypotension. This tool is for clinical reference only — all decisions must be made by a qualified clinician.</div>
+      </div>
+
+    </div><!-- end calc-content -->
+  </div><!-- end calc-body -->
+</div><!-- end calc-modal -->
+
+<!-- Incident report form modal -->
+<div class="ir-form-backdrop" id="irFormBackdrop" style="display:none;"></div>
+<div class="ir-form-modal" id="irFormModal" style="display:none;">
+  <div class="inv-modal-toolbar">
+    <button class="inv-modal-close" onclick="closeIncidentForm()">✕ Close</button>
+    <span style="font-size:0.9rem; color:var(--css-muted);">Staff Statement &amp; Reflective Account</span>
+  </div>
+  <div style="flex:1; overflow-y:auto; padding:24px 32px; background:#f5f6f8;">
+
+    <!-- Purpose note -->
+    <div style="background:#fef9ec; border:1px solid #f0d060; border-radius:8px; padding:14px 18px; margin-bottom:24px; font-size:0.85rem; color:#555; line-height:1.6;">
+      <strong>Purpose of this form</strong><br>
+      This form gives you the chance to set out, in your own words, your involvement in a significant event, clinical or prescribing error, or near-miss. The aim is <strong>learning and improvement, not blame</strong> — please be as open and honest as you can.
+    </div>
+
+    <!-- Section 1 -->
+    <div class="ir-section">
+      <div class="ir-section-header">Section 1 – Incident details</div>
+      <div class="ir-section-body">
+        <div class="form-row">
+          <div><label for="ir1Practice">GP Practice / PCN</label><input type="text" id="ir1Practice" placeholder="e.g. Riverside PCN"></div>
+          <div><label for="ir1Ref">Incident reference (if known)</label><input type="text" id="ir1Ref" placeholder="e.g. SEA-2026-001"></div>
+        </div>
+        <div class="form-row">
+          <div><label for="ir1Date">Date of incident</label><input type="date" id="ir1Date"></div>
+          <div><label for="ir1Issued">Date this form was issued</label><input type="date" id="ir1Issued"></div>
+        </div>
+        <label for="ir1Brief">Brief description of the incident</label>
+        <textarea id="ir1Brief" rows="2" placeholder="One or two sentences summarising what occurred"></textarea>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="ir-section">
+      <div class="ir-section-header">Section 2 – Your details</div>
+      <div class="ir-section-body">
+        <div class="form-row">
+          <div><label>Name</label><input type="text" id="ir2Name" readonly style="background:var(--css-bg); cursor:not-allowed;"></div>
+          <div><label>Role / job title</label><input type="text" id="ir2Role" readonly style="background:var(--css-bg); cursor:not-allowed;"></div>
+        </div>
+        <div class="form-row">
+          <div><label>GPhC registration number</label><input type="text" id="ir2Gphc" readonly style="background:var(--css-bg); cursor:not-allowed;"></div>
+          <div><label>Date of this statement</label><input type="text" id="ir2StatDate" readonly style="background:var(--css-bg); cursor:not-allowed;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="ir-section">
+      <div class="ir-section-header">Section 3 – Factual account of your involvement</div>
+      <div class="ir-section-body">
+        <p style="font-size:0.85rem; color:var(--css-muted); margin-top:0;">Please describe factually, in your own words, what part you played. Stick to what you did, saw and know; it is fine to say if you are unsure or cannot remember something.</p>
+        <label for="ir31"><strong>3.1</strong> What was your involvement in this event?</label>
+        <p class="ir-hint">For example: what you did, on which day, and at what stage of the process.</p>
+        <textarea id="ir31" rows="5" placeholder="Your response…"></textarea>
+
+        <label for="ir32"><strong>3.2</strong> Walk through what happened, step by step, as you remember it.</label>
+        <p class="ir-hint">Include timings if you can, who else was involved, and anything that was handed over to or from you.</p>
+        <textarea id="ir32" rows="6" placeholder="Your response…"></textarea>
+
+        <label for="ir33"><strong>3.3</strong> What was going on around you at the time?</label>
+        <p class="ir-hint">For example: workload and time pressure, staffing, clinical system access or IT issues (e.g. SystmOne/EMIS), interruptions, anything unusual about the day.</p>
+        <textarea id="ir33" rows="4" placeholder="Your response…"></textarea>
+      </div>
+    </div>
+
+    <!-- Section 4 -->
+    <div class="ir-section">
+      <div class="ir-section-header">Section 4 – Your reflection</div>
+      <div class="ir-section-body">
+        <p style="font-size:0.85rem; color:var(--css-muted); margin-top:0;">This section is about your own thoughts and learning. Be honest — showing insight into what happened is exactly what is wanted here.</p>
+
+        <label for="ir41"><strong>4.1</strong> Looking back, what do you think contributed to what happened?</label>
+        <p class="ir-hint">Think about the steps, systems or checks that did not work as intended, and why.</p>
+        <textarea id="ir41" rows="5" placeholder="Your response…"></textarea>
+
+        <label for="ir42"><strong>4.2</strong> How did you feel when you realised what had happened, and how do you feel now?</label>
+        <p class="ir-hint">There is no wrong answer — this helps us understand and support you.</p>
+        <textarea id="ir42" rows="4" placeholder="Your response…"></textarea>
+
+        <label for="ir43"><strong>4.3</strong> What have you learned from this?</label>
+        <p class="ir-hint">About the task, the checks, working under pressure, asking for help, or handing work over.</p>
+        <textarea id="ir43" rows="4" placeholder="Your response…"></textarea>
+
+        <label for="ir44"><strong>4.4</strong> What will you do differently in future?</label>
+        <p class="ir-hint">Concrete changes to how you will work.</p>
+        <textarea id="ir44" rows="4" placeholder="Your response…"></textarea>
+
+        <label for="ir45"><strong>4.5</strong> Do any existing or newly introduced procedures help address this — and is there anything else you think would help?</label>
+        <p class="ir-hint">Your view on current or proposed changes, and any further suggestions.</p>
+        <textarea id="ir45" rows="4" placeholder="Your response…"></textarea>
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <div class="ir-section">
+      <div class="ir-section-header">Section 5 – Support, training or resources</div>
+      <div class="ir-section-body">
+        <label for="ir51"><strong>5.1</strong> Is there any training, support or change to how we work that would help you feel confident and safe in your role?</label>
+        <p class="ir-hint">For example: refresher training, supervision, clearer procedures, workload or rota changes.</p>
+        <textarea id="ir51" rows="4" placeholder="Your response…"></textarea>
+      </div>
+    </div>
+
+    <!-- Section 6 — Declaration -->
+    <div class="ir-section">
+      <div class="ir-section-header">Section 6 – Declaration &amp; signature</div>
+      <div class="ir-section-body">
+        <p style="font-size:0.88rem; color:#333; margin-top:0;">I confirm that this statement and reflection are true and accurate to the best of my knowledge and belief, and are written in my own words.</p>
+        <div class="form-row">
+          <div>
+            <label for="ir6Sig">Sign by typing your full name</label>
+            <input type="text" id="ir6Sig" placeholder="Type your full name to sign" style="font-style:italic; font-size:1.05rem;">
+          </div>
+          <div>
+            <label>Date</label>
+            <input type="text" id="ir6Date" readonly style="background:var(--css-bg); cursor:not-allowed;">
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:20px;">
+          <button class="btn" onclick="submitIncidentReport()" style="background:var(--css-red); border-color:var(--css-red);">Submit report</button>
+          <span class="form-msg" id="irFormMsg"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Incident report view modal (PDF preview) -->
+<div class="inv-modal-backdrop" id="irViewBackdrop" onclick="closeIncidentView()" style="display:none;"></div>
+<div class="inv-modal" id="irViewModal" style="display:none;">
+  <div class="inv-modal-toolbar">
+    <button class="inv-modal-close" onclick="closeIncidentView()">✕ Close</button>
+    <button class="btn small secondary" onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+  <div id="irViewContent"></div>
+</div>
+
+<!-- Invoice modal -->
+<div class="inv-modal-backdrop" id="invModalBackdrop" onclick="closeInvoiceModal()" style="display:none;"></div>
+<div class="inv-modal" id="invModal" style="display:none;">
+  <div class="inv-modal-toolbar">
+    <button class="inv-modal-close" onclick="closeInvoiceModal()">✕ Close</button>
+    <button class="btn small secondary" onclick="window.print()">🖨️ Print / Save PDF</button>
+  </div>
+  <div id="invModalContent"></div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/notifs.js"></script>
+<script src="js/staff.js"></script>
+</body>
+</html>

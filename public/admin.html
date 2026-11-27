@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CSS Admin Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/release.css">
+</head>
+<body>
+<div class="app-shell" id="app" style="visibility:hidden;">
+  <nav class="sidebar">
+    <div class="brand">CSS Admin Portal<small>Clinical Support Solutions</small></div>
+    <div class="who" id="whoBox"></div>
+
+    <button class="nav-item active" data-section="dashboard"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-item" data-section="rota"><span class="nav-icon">🗓️</span> Rota &amp; lunch</button>
+    <button class="nav-item" data-section="staff-mgmt"><span class="nav-icon">👤</span> Accounts</button>
+    <button class="nav-item" data-soon><span class="nav-icon">🌴</span> Holiday approvals</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📋</span> Staff Documents</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📑</span> Renewals</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📣</span> Announcements</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📄</span> Documents</button>
+    <button class="nav-item" data-soon><span class="nav-icon">💷</span> Invoices</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📥</span> Service requests</button>
+    <button class="nav-item" data-soon><span class="nav-icon">🩺</span> Our services</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📇</span> Contacts</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📜</span> Practice contracts</button>
+    <button class="nav-item" data-soon><span class="nav-icon">🏛️</span> CQC Reports</button>
+    <button class="nav-item" data-soon><span class="nav-icon">⚠️</span> Incident reports</button>
+    <button class="nav-item" data-soon><span class="nav-icon">📋</span> Task ledger</button>
+
+    <button class="nav-item logout-btn" data-action="logout"><span class="nav-icon">↩️</span> Sign out</button>
+  </nav>
+
+  <main class="main">
+    <!-- Dashboard -->
+    <section class="section active" id="sec-dashboard">
+      <div class="page-header"><div><h1>Admin overview</h1><p id="welcomeLine"></p></div></div>
+      <div class="cards-grid">
+        <div class="stat-card stat-card--link" data-goto="staff-mgmt"><div class="num" id="statActiveStaff">–</div><div class="label">Active staff accounts</div></div>
+        <div class="stat-card stat-card--link" data-goto="staff-mgmt"><div class="num" id="statPendingInvites">–</div><div class="label">Invitations not yet accepted</div></div>
+        <div class="stat-card stat-card--link" data-goto="rota"><div class="num" id="statShiftsWeek">–</div><div class="label">Shifts this week</div></div>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <h2>Needs your attention</h2>
+          <ul class="notif-list" id="dashAttention"></ul>
+        </div>
+        <div class="panel">
+          <h2>This week's rota at a glance</h2>
+          <ul class="notif-list" id="dashRotaWeek"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rota & lunch -->
+    <section class="section" id="sec-rota">
+      <div class="page-header"><div><h1>Rota &amp; lunch breaks</h1><p>Manage recurring weekly shifts and one-off overtime / cover shifts.</p></div></div>
+
+      <h2 class="section-label">Recurring weekly shifts</h2>
+      <div class="inline-row">
+        <label for="rotaStaffSelect" style="font-weight:600; white-space:nowrap; margin:0;">Staff member:</label>
+        <select id="rotaStaffSelect" style="max-width:320px;"></select>
+      </div>
+      <div id="rotaStaffContent">
+        <div class="two-col">
+          <div class="panel">
+            <h3 id="rotaListTitle">Recurring shifts</h3>
+            <div id="rotaShiftsList"></div>
+          </div>
+          <form class="panel" id="rotaForm" novalidate>
+            <h3 id="rotaFormTitle">Add a shift</h3>
+            <label for="rotaWeekday">Day</label>
+            <select id="rotaWeekday">
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+            </select>
+            <label for="rotaSite">Site</label>
+            <select id="rotaSite" class="site-select"></select>
+            <div class="form-row" style="margin-top:12px;">
+              <div><label for="rotaFrom">Shift start</label><input type="time" id="rotaFrom" value="09:00"></div>
+              <div><label for="rotaTo">Shift end</label><input type="time" id="rotaTo" value="17:00"></div>
+            </div>
+            <label for="rotaLunch">Lunch break (minutes)</label>
+            <input type="number" id="rotaLunch" value="30" min="0" max="240" step="5">
+            <div class="form-row" style="margin-top:12px;">
+              <div><label for="rotaStartDate">Pattern starts</label><input type="date" id="rotaStartDate"></div>
+              <div><label for="rotaEndDate">Pattern ends <span style="font-weight:400; color:var(--css-muted);">(optional)</span></label><input type="date" id="rotaEndDate"></div>
+            </div>
+            <label for="rotaNote">Note (optional)</label>
+            <input type="text" id="rotaNote" maxlength="200" placeholder="e.g. Clinic A">
+            <div class="form-actions">
+              <button class="btn" type="submit" id="rotaSaveBtn">Add shift</button>
+              <button class="btn small secondary" type="button" id="rotaCancelBtn" style="display:none;">Cancel</button>
+              <span class="form-msg" id="rotaMsg" role="status"></span>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <h2 class="section-label">Weekly calendar</h2>
+      <div class="panel" style="padding-bottom:8px;">
+        <div class="inline-row" style="margin-bottom:18px;">
+          <button class="btn small secondary" type="button" id="calPrev">← Prev</button>
+          <span id="adminRotaWeekLabel" style="font-weight:600; font-size:1rem;"></span>
+          <button class="btn small secondary" type="button" id="calNext">Next →</button>
+          <select id="calStaffFilter" style="margin-left:auto; max-width:220px;"><option value="">All staff</option></select>
+        </div>
+        <div id="adminWeekCalendar"></div>
+      </div>
+
+      <h2 class="section-label">One-off shifts &amp; overtime</h2>
+      <div class="two-col">
+        <form class="panel" id="ooForm" novalidate>
+          <h3>Add a one-off shift</h3>
+          <p style="color:var(--css-muted); font-size:0.88rem; margin-top:-4px;">Use this for overtime, bank holiday cover, or any shift that falls outside the regular weekly pattern. It will appear on the staff member's rota for that date only.</p>
+          <label for="ooStaff">Staff member</label>
+          <select id="ooStaff"></select>
+          <div class="form-row" style="margin-top:12px;">
+            <div><label for="ooDate">Date</label><input type="date" id="ooDate"></div>
+            <div><label for="ooSite">Site</label><select id="ooSite" class="site-select"></select></div>
+          </div>
+          <div class="form-row">
+            <div><label for="ooFrom">Start time</label><input type="time" id="ooFrom" value="09:00"></div>
+            <div><label for="ooTo">End time</label><input type="time" id="ooTo" value="17:00"></div>
+            <div><label for="ooLunch">Lunch (mins)</label><input type="number" id="ooLunch" value="30" min="0" max="240" step="5"></div>
+          </div>
+          <label for="ooNote">Reason / note</label>
+          <input type="text" id="ooNote" maxlength="200" placeholder="e.g. Overtime — bank holiday cover">
+          <div class="form-actions">
+            <button class="btn" type="submit">Add shift</button>
+            <span class="form-msg" id="ooMsg" role="status"></span>
+          </div>
+        </form>
+        <div class="panel">
+          <h3>Upcoming one-off shifts</h3>
+          <div id="oneOffShiftsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accounts -->
+    <section class="section" id="sec-staff-mgmt">
+      <div class="page-header"><div><h1>Accounts</h1><p>Invite staff to the portal. Each person receives a one-time link by email to set their own CSS portal password.</p></div></div>
+
+      <div class="two-col">
+        <form class="panel" id="staffForm" novalidate>
+          <h3 id="staffFormTitle">Add new staff member</h3>
+          <label for="smFullName">Full name</label>
+          <input type="text" id="smFullName" maxlength="120" placeholder="e.g. Priya Patel" autocomplete="off">
+          <label for="smEmail">NHSmail address <span style="font-weight:400; color:var(--css-muted);">invitation sent here</span></label>
+          <input type="email" id="smEmail" maxlength="254" placeholder="e.g. priya.patel@nhs.net" autocomplete="off">
+          <label for="smRole">Role</label>
+          <select id="smRole">
+            <option value="Pharmacist">Pharmacist</option>
+            <option value="Pharmacy Technician">Pharmacy Technician</option>
+            <option value="Clinical Pharmacist">Clinical Pharmacist</option>
+            <option value="Pharmacy Manager">Pharmacy Manager</option>
+          </select>
+          <label for="smSite">Primary site</label>
+          <select id="smSite"></select>
+          <div class="form-actions">
+            <button class="btn" type="submit" id="smSaveBtn">Send invitation</button>
+            <button class="btn small secondary" type="button" id="smCancelBtn" style="display:none;">Cancel</button>
+            <span class="form-msg" id="smMsg" role="status"></span>
+          </div>
+          <p class="hint">The invitation link works once and expires after 24 hours. You can resend it from the list if needed.</p>
+        </form>
+
+        <div class="panel">
+          <h3>Current accounts</h3>
+          <ul class="notif-list" id="staffAccountList"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/portal.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

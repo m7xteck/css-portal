@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS PCN / Practice Portal</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="brand">PCN / Practice Portal<small>Clinical Support Solutions</small></div>
+    <div class="who" id="whoBox"></div>
+
+    <button class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+    <button class="nav-item" data-section="services" onclick="showSection('services')"><span class="nav-icon">🩺</span> Our services</button>
+    <button class="nav-item" data-section="requests" onclick="showSection('requests')"><span class="nav-icon">📋</span> Service requests</button>
+    <button class="nav-item" data-section="announcements" onclick="showSection('announcements')"><span class="nav-icon">📣</span> Announcements</button>
+    <button class="nav-item" data-section="documents" onclick="showSection('documents')"><span class="nav-icon">📄</span> Documents &amp; forms</button>
+    <button class="nav-item" data-section="contacts" onclick="showSection('contacts')"><span class="nav-icon">📇</span> Contacts</button>
+    <button class="nav-item" data-section="cqc" onclick="showSection('cqc')"><span class="nav-icon">🏛️</span> CQC compliance</button>
+
+    <button class="nav-item logout-btn" onclick="logout()"><span class="nav-icon">↩️</span> Sign out</button>
+  </nav>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="bell-wrap" id="bellWrap">
+        <button class="bell-btn" id="bellBtn" onclick="toggleBellDropdown()" title="Notifications">
+          🔔<span class="bell-badge" id="bellBadge"></span>
+        </button>
+        <div class="bell-dropdown" id="bellDropdown" style="display:none;">
+          <div class="bell-dropdown-header">Notifications<button class="bell-clear" id="bellClearAll">Mark all read</button></div>
+          <div id="bellList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="note-banner">Prototype mode — data shown here is sample data stored in your browser only. Nothing is sent to a server.</div>
+
+    <!-- Dashboard -->
+    <section class="section active" id="sec-dashboard">
+      <div class="page-header"><div><h1>Welcome back</h1><p id="welcomeLine"></p></div></div>
+      <div class="cards-grid">
+        <div class="stat-card stat-card--link" onclick="showSection('requests')"><div class="num" id="statRequests">–</div><div class="label">Open service requests</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('announcements')"><div class="num" id="statAnnouncements">–</div><div class="label">New announcements</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('documents')"><div class="num" id="statDocs">–</div><div class="label">Documents available</div></div>
+        <div class="stat-card stat-card--link" onclick="showSection('services')"><div class="num" id="statServices">6</div><div class="label">Active CSS services</div></div>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <h2>Latest announcements</h2>
+          <ul class="notif-list" id="dashAnnouncements"></ul>
+        </div>
+        <div class="panel">
+          <h2>Recent service requests</h2>
+          <ul class="notif-list" id="dashRequests"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="section" id="sec-services">
+      <div class="page-header"><div><h1>Our services</h1><p>Clinical pharmacy services CSS provides to your PCN / practice, as agreed in contract.</p></div></div>
+
+      <!-- Contract summary -->
+      <div class="panel contract-summary">
+        <div class="contract-header">
+          <div>
+            <h2 style="margin:0 0 2px;">Contract summary</h2>
+            <p id="contractPeriod" style="margin:0; color:var(--css-muted); font-size:0.85rem;"></p>
+          </div>
+          <span class="pill green" id="contractStatus">Active</span>
+        </div>
+        <div class="cards-grid" style="margin:18px 0 8px;" id="contractStats"></div>
+        <p id="contractNotes" style="font-size:0.82rem; color:var(--css-muted); margin:0;"></p>
+      </div>
+
+      <!-- Service tiles -->
+      <div class="tools-grid" id="svcTileGrid"></div>
+
+      <!-- Expanded detail panel (shown on tile click) -->
+      <div id="svcDetailPanel" style="display:none;"></div>
+
+      <div style="margin-top:4px;">
+        <button class="btn secondary" onclick="showSection('requests')">➕ Raise a service request</button>
+      </div>
+    </section>
+
+    <!-- Service requests -->
+    <section class="section" id="sec-requests">
+      <div class="page-header"><div><h1>Service requests</h1><p>Submit a new request and track ones in progress.</p></div></div>
+      <div class="panel">
+        <h3>New service request</h3>
+        <div class="form-row">
+          <div>
+            <label for="reqService">Service</label>
+            <select id="reqService">
+              <option>Structured Medication Review (SMR)</option>
+              <option>Acute Request</option>
+              <option>Care Home Medication Review</option>
+              <option>HRT / Menopause Review</option>
+              <option>Long-term Condition Clinic</option>
+              <option>Prescribing Audit / Review</option>
+              <option>Medicines Reconciliation</option>
+              <option>Vaccination Support</option>
+              <option>Hospital Letters / Discharge Support</option>
+              <option>Polypharmacy / Frailty Review</option>
+              <option disabled>──────────────</option>
+              <option>Concerns or feedback about a pharmacist</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div id="patientsField"><label for="reqPatients">Approx. number of patients</label><input type="number" id="reqPatients" min="1" placeholder="e.g. 8"></div>
+        </div>
+        <label for="reqNote">Notes / details</label>
+        <textarea id="reqNote" rows="3" placeholder="Anything CSS should know — timescales, complexity, special considerations, or details of your feedback"></textarea>
+        <label for="reqFile" style="margin-top:14px;">Attach a document <span style="font-weight:400;color:var(--css-muted);">(optional)</span></label>
+        <input type="file" id="reqFile" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" style="padding:6px 8px;">
+        <div class="hint" id="reqFileHint">Accepted formats: PDF, Word, Excel, images. Max 10 MB. In the full version this would upload securely to CSS file storage.</div>
+        <div class="form-actions">
+          <button class="btn" onclick="submitRequest()">Submit</button>
+          <span class="form-msg" id="reqMsg"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Your requests</h3>
+        <table>
+          <thead><tr><th>Reference</th><th>Service</th><th>Patients</th><th>Doc</th><th>Submitted</th><th>Status</th><th>Thread</th></tr></thead>
+          <tbody id="requestTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Announcements -->
+    <section class="section" id="sec-announcements">
+      <div class="page-header"><div><h1>Announcements</h1><p>Updates and notices from CSS and national bodies.</p></div></div>
+      <div class="panel" style="padding-bottom:0;">
+        <div class="tab-row" style="margin-bottom:0;">
+          <button class="tab-btn active" id="annTabAll"  onclick="filterAnnouncements('all')">All</button>
+          <button class="tab-btn"        id="annTabCss"  onclick="filterAnnouncements('css')">CSS updates</button>
+          <button class="tab-btn"        id="annTabMhra" onclick="filterAnnouncements('mhra')">⚠️ MHRA alerts</button>
+        </div>
+      </div>
+      <div class="panel" style="border-top:none;border-radius:0 0 10px 10px;margin-top:0;">
+        <div class="ann-cards" id="fullAnnouncements"></div>
+      </div>
+    </section>
+
+    <!-- Documents -->
+    <section class="section" id="sec-documents">
+      <div class="page-header"><div><h1>Documents &amp; forms</h1><p>Referral forms, service specifications and reports.</p></div></div>
+      <div class="panel">
+        <ul class="doc-list" id="practiceDocList"></ul>
+      </div>
+    </section>
+
+    <!-- CQC Clinical Safety Report -->
+    <section class="section" id="sec-cqc">
+      <div class="page-header">
+        <div>
+          <h1>CQC Clinical Safety Report</h1>
+          <p>Prepared by Clinical Support Solutions — patient safety review across high-risk prescribing, monitoring and long-term conditions.</p>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+          <div id="cqcReportMeta" style="text-align:right; font-size:0.82rem; color:var(--css-muted); line-height:1.6;"></div>
+          <button class="btn secondary" onclick="printCQCReport()" style="white-space:nowrap; font-size:0.83rem; padding:6px 14px;">🖨️ Print / Save PDF</button>
+        </div>
+      </div>
+
+      <!-- Report version selector (shown only when >1 report exists) -->
+      <div id="cqcVersionBar" style="display:none; align-items:center; gap:10px; margin-bottom:16px; padding:10px 16px; background:var(--css-bg-alt, #f5f7fa); border-radius:8px; border:1px solid var(--css-border);">
+        <span style="font-size:0.85rem; font-weight:600; color:var(--css-muted);">📅 Report version:</span>
+        <select id="cqcVersionSelect" onchange="switchCQCVersion(this.value)" style="font-size:0.85rem; padding:5px 10px; border-radius:6px; border:1px solid var(--css-border);"></select>
+        <span style="font-size:0.8rem; color:var(--css-muted);">Select a previous version to compare historical data.</span>
+      </div>
+
+      <!-- Summary stat cards -->
+      <div class="cqc-summary-row" id="cqcSummaryRow"></div>
+
+      <!-- Section category cards -->
+      <h2 class="cqc-section-heading">At a glance — by area</h2>
+      <div class="cqc-section-grid" id="cqcSectionGrid"></div>
+
+      <!-- Detail table — filtered by section -->
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:28px; margin-bottom:10px;">
+        <h2 class="cqc-section-heading" style="margin:0;" id="cqcDetailTitle">All areas</h2>
+        <div class="cqc-checklist-tabs" id="cqcFilterTabs" style="margin:0;"></div>
+      </div>
+      <div class="panel" style="padding:0; overflow:auto;">
+        <table id="cqcDetailTable" style="min-width:900px;">
+          <thead>
+            <tr>
+              <th style="width:38%;">Clinical indicator</th>
+              <th style="width:7%; text-align:center;">Patients</th>
+              <th style="width:7%; text-align:center;">Eligible</th>
+              <th style="width:8%; text-align:center;">% not met</th>
+              <th>Action / notes</th>
+            </tr>
+          </thead>
+          <tbody id="cqcDetailBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Contacts -->
+    <section class="section" id="sec-contacts">
+      <div class="page-header"><div><h1>Contacts</h1><p>Key CSS contacts for your organisation.</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Covers</th><th>Email</th><th>Phone</th></tr></thead>
+          <tbody id="practiceContactList"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/notifs.js"></script>
+<script src="js/practice.js"></script>
+</body>
+</html>

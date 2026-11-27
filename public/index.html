@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CSS Portal — Sign in</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/release.css">
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-intro">
+      <span class="badge">Staff portal</span>
+      <h1>Clinical Support Solutions Portal</h1>
+      <p>One place for our pharmacists and pharmacy technicians to see the shifts they have been assigned.</p>
+      <p style="margin-top:28px;"><strong>CSS Team area</strong><br>Your rota and shift times. More features — announcements, documents, holiday requests and invoicing — are coming soon.</p>
+      <p><strong>PCN / Practice area</strong><br>Coming soon.</p>
+      <p style="margin-top:28px; font-size:0.78rem; color:#9db2bb;">Accounts are created by the CSS office. Use the email address your invitation was sent to and the portal password you set — not your NHSmail password.</p>
+    </div>
+    <div class="login-form">
+      <div class="tab-row">
+        <button type="button" class="tab-btn active" id="tabSignIn" data-tab="signin">Sign in</button>
+        <button type="button" class="tab-btn" id="tabReset" data-tab="reset">Forgotten password</button>
+      </div>
+
+      <form id="signInPane" novalidate>
+        <h2>Sign in</h2>
+        <div class="form-msg is-ok" id="signInInfo"></div>
+        <label for="email">Email address</label>
+        <input id="email" type="email" autocomplete="username" placeholder="name@nhs.net" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+        <button class="btn full" type="submit" id="signInBtn">Sign in</button>
+        <div class="error-msg" id="signInErr" role="alert"></div>
+        <div class="hint"><button type="button" class="link-btn" data-tab="reset">Forgotten your password?</button></div>
+      </form>
+
+      <form id="resetPane" style="display:none;" novalidate>
+        <h2>Reset your password</h2>
+        <p class="hint" style="margin-top:0;">Enter the email address you use for the portal. If it matches an account, we'll email you a link to choose a new password.</p>
+        <label for="resetEmail">Email address</label>
+        <input id="resetEmail" type="email" autocomplete="username" placeholder="name@nhs.net" required>
+        <button class="btn full" type="submit" id="resetBtn">Send reset link</button>
+        <div class="form-msg" id="resetMsg" role="status" style="margin-top:10px;"></div>
+        <div class="hint"><button type="button" class="link-btn" data-tab="signin">Back to sign in</button></div>
+      </form>
+
+      <div class="hint">Need an account or having trouble? Contact the CSS office.</div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/portal.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>
